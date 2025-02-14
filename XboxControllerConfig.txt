@@ -1,0 +1,9 @@
+Left bumper - Elevator go down 			Right bumper - Elevator go up
+
+
+								Y
+			Select - zero heading		X		B - coral out
+								A - coral in
+
+
+Sticks - drive

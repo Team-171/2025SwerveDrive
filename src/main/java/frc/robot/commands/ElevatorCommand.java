@@ -4,21 +4,24 @@
 
 package frc.robot.commands;
 
-import frc.robot.subsystems.CoralSubsystem;
+import frc.robot.Constants.ElevatorConstants;
+import frc.robot.subsystems.ElevatorSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 
 /** An example command that uses an example subsystem. */
-public class ExampleCommand extends Command {
+public class ElevatorCommand extends Command {
   @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
-  private final CoralSubsystem m_subsystem;
+  private final ElevatorSubsystem m_elevatorSubsystem;
+  private double speed;
 
   /**
    * Creates a new ExampleCommand.
    *
    * @param subsystem The subsystem used by this command.
    */
-  public ExampleCommand(CoralSubsystem subsystem) {
-    m_subsystem = subsystem;
+  public ElevatorCommand(ElevatorSubsystem subsystem, double speed) {
+    m_elevatorSubsystem = subsystem;
+    this.speed = speed;
     // Use addRequirements() here to declare subsystem dependencies.
     addRequirements(subsystem);
   }
@@ -29,11 +32,15 @@ public class ExampleCommand extends Command {
 
   // Called every time the scheduler runs while the command is scheduled.
   @Override
-  public void execute() {}
+  public void execute() {
+    m_elevatorSubsystem.manualMoveArm(speed);
+  }
 
   // Called once the command ends or is interrupted.
   @Override
-  public void end(boolean interrupted) {}
+  public void end(boolean interrupted) {
+    m_elevatorSubsystem.stopElevator();
+  }
 
   // Returns true when the command should end.
   @Override

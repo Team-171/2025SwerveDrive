@@ -5,6 +5,7 @@
 package frc.robot;
 
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
+
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
@@ -100,7 +101,7 @@ public final class Constants {
         / kDrivingMotorReduction) / 60.0; // meters per second
 
     public static final double kTurningEncoderPositionFactor = (2 * Math.PI); // radians
-    public static final double kTurningEncoderVelocityFactor = (2 * Math.PI) / 60.0; // radians per second
+    public static final double kTurningEncoderVelocityFactor = (2 * Math.PI); // radians per second
 
     public static final double kTurningEncoderPositionPIDMinInput = 0; // radians
     public static final double kTurningEncoderPositionPIDMaxInput = kTurningEncoderPositionFactor; // radians
@@ -128,6 +129,23 @@ public final class Constants {
 
   public static final class NeoMotorConstants {
     public static final double kFreeSpeedRpm = 5676;
+  }
+
+  public static final class CoralConstants {
+    public static final int kCoralMotorCanID = 31;
+    public static final double kCoralSpeed = 1;
+  }
+
+  public static final class ElevatorConstants {
+    public static final int kLeftLiftCanID = 41;
+    public static final int kRightLiftCanID = 42;
+    public static final int kElevatorPulleyChannelID = 0; // DIO port
+    public static final int kElevatorMotorCurrentLimit = 50; // amps
+    public static final double kElevatorMotorRampRate = 1.0; // in seconds
+    public static final double kElevatorSpeed = 0.5; // percent
+    public static final double kInchToMm = 25.4;
+    public static final double kHighStop = 42*kInchToMm;
+    public static final double kLowStop = 12*kInchToMm;
   }
 
 
