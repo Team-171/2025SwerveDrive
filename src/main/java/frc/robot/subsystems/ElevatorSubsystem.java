@@ -40,8 +40,11 @@ public class ElevatorSubsystem extends SubsystemBase {
 
         distanceSensor = new Rev2mDistanceSensor(Port.kOnboard);
         distanceSensor.setDistanceUnits(Unit.kMillimeters);
+        distanceSensor.setEnabled(true);
+        distanceSensor.setAutomaticMode(true);
 
         holdPosition = distanceSensor.getRange();
+        holdPosition = MathUtil.clamp(holdPosition, ElevatorConstants.kLowStop, ElevatorConstants.kHighStop);
 
         pid = new PIDController(1, 0, 0);
 

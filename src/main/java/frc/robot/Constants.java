@@ -4,6 +4,7 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.config.RobotConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.math.geometry.Translation2d;
@@ -21,6 +22,7 @@ import edu.wpi.first.math.util.Units;
 public final class Constants {
   public static class OIConstants {
     public static final int kDriverControllerPort = 0;
+    public static final int kOperatorControllerPort = 1;
     public static final double kDriveDeadband = 0.15;
   }
 
@@ -142,10 +144,21 @@ public final class Constants {
     public static final int kElevatorPulleyChannelID = 0; // DIO port
     public static final int kElevatorMotorCurrentLimit = 50; // amps
     public static final double kElevatorMotorRampRate = 1.0; // in seconds
-    public static final double kElevatorSpeed = 0.5; // percent
+    public static final double kElevatorSpeed = 1; // percent
     public static final double kInchToMm = 25.4;
     public static final double kHighStop = 42*kInchToMm;
     public static final double kLowStop = 12*kInchToMm;
+  }
+
+  public static final class AlgaeConstants {
+    public static final int kArmMotorCanId = 51;
+    public static final int kRollerMotorCanId = 52;
+    public static final int kArmMotorCurrentLimit = 50;
+    public static final int kRollerMotorCurrentLimit = 20;
+    public static final double kArmMotorRampRate = 0.125; // in seconds
+    public static final double kArmSpeed = 0.2; // percent
+    public static final double kRollerMotorRampRate = 1.0; // in seconds
+    public static final double kRollerSpeed = 1; // percent
   }
 
 

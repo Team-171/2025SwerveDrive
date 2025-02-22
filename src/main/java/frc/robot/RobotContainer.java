@@ -4,18 +4,23 @@
 
 package frc.robot;
 
+import frc.robot.Constants.AlgaeConstants;
 import frc.robot.Constants.CoralConstants;
 import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.OIConstants;
 import frc.robot.commands.ElevatorCommand;
 import frc.robot.commands.MoveCoral;
+import frc.robot.commands.MoveRoller;
+import frc.robot.commands.MoveArm;
 import frc.robot.commands.autos.Autos;
-//import frc.robot.commands.Autos;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
+import frc.robot.subsystems.AlgaeSubsystem;
 import frc.robot.subsystems.CoralSubsystem;
+
+import com.pathplanner.lib.auto.AutoBuilder;
+
 import edu.wpi.first.math.MathUtil;
-import edu.wpi.first.util.sendable.SendableBuilder;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -37,19 +42,27 @@ import edu.wpi.first.wpilibj2.command.button.Trigger;
 public class RobotContainer {
     // The robot's subsystems and commands are defined here...
     private final DriveSubsystem m_driveSubsystem = new DriveSubsystem();
-    private final CoralSubsystem m_coralSubsystem = new CoralSubsystem();
+    /* private final CoralSubsystem m_coralSubsystem = new CoralSubsystem();
     private final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem();
+    private final AlgaeSubsystem m_algaeSubsystem = new AlgaeSubsystem(); */
     private SendableChooser<Command> autoChooser;
 
     XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
+//     XboxController m_operatorController = new XboxController(OIConstants.kOperatorControllerPort);
 
     /**
      * The container for the robot. Contains subsystems, OI devices, and commands.
      */
     public RobotContainer() {
-        autoChooser = new SendableChooser<>();
-        autoChooser.addOption("Drive Forward", Autos.driveForwardAuto(m_driveSubsystem));
+        /* autoChooser = new SendableChooser<>();
+        autoChooser.setDefaultOption("Drive Forward", Autos.driveForwardAuto(m_driveSubsystem)); */
+        // autoChooser.addOption("ScoreL1", Autos.ScoreL1Auto(m_driveSubsystem, m_coralSubsystem, m_elevatorSubsystem));
+
+        autoChooser = AutoBuilder.buildAutoChooser();
         SmartDashboard.putData(autoChooser);
+
+
+        SmartDashboard.putData(m_driveSubsystem);
 
         // Configure the trigger bindings
         configureBindings();
@@ -69,10 +82,10 @@ public class RobotContainer {
                                 m_driverController.getStartButton()),
                         m_driveSubsystem));
 
-        m_elevatorSubsystem.setDefaultCommand(
+       /*/ m_elevatorSubsystem.setDefaultCommand(
                 new RunCommand(
                         () -> m_elevatorSubsystem.holdCurrentPosition(),
-                        m_elevatorSubsystem));
+                        m_elevatorSubsystem)); */
 
     }
 
@@ -102,20 +115,30 @@ public class RobotContainer {
         new JoystickButton(m_driverController, XboxController.Button.kBack.value) // select button
                 .onTrue(new RunCommand(() -> m_driveSubsystem.zeroHeading()));
 
-        new JoystickButton(m_driverController, XboxController.Button.kA.value) // move coral in
+        /* new JoystickButton(m_driverController, XboxController.Button.kA.value) // move coral in
                 .whileTrue(new MoveCoral(m_coralSubsystem, CoralConstants.kCoralSpeed));
 
         new JoystickButton(m_driverController, XboxController.Button.kB.value) // move coral out
                 .whileTrue(new MoveCoral(m_coralSubsystem, -CoralConstants.kCoralSpeed));
 
-        new JoystickButton(m_driverController, XboxController.Button.kLeftBumper.value) // move the elevator down
-                                                                                        // manually
+        new JoystickButton(m_driverController, XboxController.Button.kLeftBumper.value) // move the elevator down manually
                 .whileTrue(new ElevatorCommand(m_elevatorSubsystem, -ElevatorConstants.kElevatorSpeed));
 
-        new JoystickButton(m_driverController, XboxController.Button.kRightBumper.value) // move the elevator up
-                                                                                         // manually
-                .whileTrue(new ElevatorCommand(m_elevatorSubsystem, ElevatorConstants.kElevatorSpeed));
-    }
+        new JoystickButton(m_driverController, XboxController.Button.kRightBumper.value) // move the elevator up manually
+                .whileTrue(new ElevatorCommand(m_elevatorSubsystem, ElevatorConstants.kElevatorSpeed)); */
+   
+        /* new JoystickButton(m_operatorController, XboxController.Button.kX.value)        // operator move arm down
+                .whileTrue(new MoveArm(m_algaeSubsystem, AlgaeConstants.kArmSpeed));
+
+        new JoystickButton(m_operatorController, XboxController.Button.kY.value)        // operator move arm up
+                .whileTrue(new MoveArm(m_algaeSubsystem, -AlgaeConstants.kArmSpeed));
+
+        new JoystickButton(m_operatorController, XboxController.Button.kA.value)        // operator move roller
+                .whileTrue(new MoveRoller(m_algaeSubsystem, AlgaeConstants.kRollerSpeed));
+
+        new JoystickButton(m_operatorController, XboxController.Button.kB.value)
+                .whileTrue(new MoveRoller(m_algaeSubsystem, -AlgaeConstants.kRollerSpeed));     // operator move roller */
+        }
 
     /**
      * Use this to pass the autonomous command to the main {@link Robot} class.
