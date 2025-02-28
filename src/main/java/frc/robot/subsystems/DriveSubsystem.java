@@ -14,6 +14,10 @@ import com.studica.frc.AHRS.NavXComType;
 import edu.wpi.first.hal.FRCNetComm.tInstances;
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
 import edu.wpi.first.hal.HAL;
+import edu.wpi.first.math.MathUtil;
+import edu.wpi.first.math.VecBuilder;
+import edu.wpi.first.math.controller.PIDController;
+import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
@@ -21,12 +25,16 @@ import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
-import edu.wpi.first.units.measure.Mass;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
+import frc.helperObjects.XYCoordinates;
+import frc.helperObjects.XYSpeeds;
 import frc.robot.Constants.DriveConstants;
+import frc.utils.LimelightHelpers;
+import frc.utils.PolarUtils;
 
 public class DriveSubsystem extends SubsystemBase {
   // Create MAXSwerveModules
@@ -55,16 +63,12 @@ public class DriveSubsystem extends SubsystemBase {
 
   private final Field2d m_field = new Field2d();
 
-  // Odometry class for tracking robot pose
-  SwerveDriveOdometry m_odometry = new SwerveDriveOdometry(
-      DriveConstants.kDriveKinematics,
-      Rotation2d.fromDegrees(m_gyro.getAngle()),
-      new SwerveModulePosition[] {
-          m_frontLeft.getPosition(),
-          m_frontRight.getPosition(),
-          m_rearLeft.getPosition(),
-          m_rearRight.getPosition()
-      });
+  private final SwerveDrivePoseEstimator m_PoseEstimator;
+
+  PIDController xCoordDiffPidController = new PIDController(DriveConstants.kXDiffCoordP, DriveConstants.kXDiffCoordI,
+      DriveConstants.kXDiffCoordD);
+  PIDController yCoordDiffPidController = new PIDController(DriveConstants.kYDiffCoordP, DriveConstants.kYDiffCoordI,
+      DriveConstants.kYDiffCoordD);
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {
@@ -72,12 +76,21 @@ public class DriveSubsystem extends SubsystemBase {
     HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_MaxSwerve);
 
     RobotConfig config = null;
-    try{
+    try {
       config = RobotConfig.fromGUISettings();
     } catch (Exception e) {
       // Handle exception as needed
       e.printStackTrace();
     }
+
+    m_PoseEstimator = new SwerveDrivePoseEstimator(DriveConstants.kDriveKinematics,
+        m_gyro.getRotation2d(),
+        new SwerveModulePosition[] {
+            m_frontLeft.getPosition(),
+            m_frontRight.getPosition(),
+            m_rearLeft.getPosition(),
+            m_rearRight.getPosition()
+        }, new Pose2d());
 
     AutoBuilder.configure(
         this::getPose, // Robot pose supplier
@@ -126,21 +139,44 @@ public class DriveSubsystem extends SubsystemBase {
 
   @Override
   public void periodic() {
-    // Update the odometry in the periodic block
-    m_odometry.update(
-        Rotation2d.fromDegrees(m_gyro.getAngle()),
-        new SwerveModulePosition[] {
-            m_frontLeft.getPosition(),
-            m_frontRight.getPosition(),
-            m_rearLeft.getPosition(),
-            m_rearRight.getPosition()
-        });
-
     SmartDashboard.putNumber("gyro", m_gyro.getAngle());
     SmartDashboard.putBoolean("gyroConnected", m_gyro.isConnected());
 
-    SmartDashboard.putData("Field", m_field);
-    m_field.setRobotPose(getPose());
+    m_PoseEstimator.update(m_gyro.getRotation2d(), new SwerveModulePosition[] {
+        m_frontLeft.getPosition(),
+        m_frontRight.getPosition(),
+        m_rearLeft.getPosition(),
+        m_rearRight.getPosition()
+    });
+
+    LimelightHelpers.SetRobotOrientation("limelight-allison",
+        m_PoseEstimator.getEstimatedPosition().getRotation().getDegrees(),
+        0, 0, 0, 0, 0);
+
+    boolean doRejectUpdate = false;
+
+    try {
+      LimelightHelpers.PoseEstimate poseEstimate = LimelightHelpers
+          .getBotPoseEstimate_wpiBlue_MegaTag2("limelight-allison");
+      if (Math.abs(m_gyro.getRate()) > 720) // if our angular velocity is greater than 720 degrees per second, ignore
+                                            // vision updates
+      {
+        doRejectUpdate = true;
+      }
+      if (poseEstimate.tagCount == 0) {
+        doRejectUpdate = true;
+      }
+      if (!doRejectUpdate) {
+        m_PoseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(.7, .7, 9999999));
+        m_PoseEstimator.addVisionMeasurement(
+            poseEstimate.pose,
+            poseEstimate.timestampSeconds);
+      }
+    } catch (Exception e) {
+    }
+    SmartDashboard.putData(m_field);
+    m_field.setRobotPose(m_PoseEstimator.getEstimatedPosition());
+
   }
 
   /**
@@ -149,7 +185,7 @@ public class DriveSubsystem extends SubsystemBase {
    * @return The pose.
    */
   public Pose2d getPose() {
-    return m_odometry.getPoseMeters();
+    return m_PoseEstimator.getEstimatedPosition();
   }
 
   /**
@@ -158,15 +194,7 @@ public class DriveSubsystem extends SubsystemBase {
    * @param pose The pose to which to set the odometry.
    */
   public void resetOdometry(Pose2d pose) {
-    m_odometry.resetPosition(
-        Rotation2d.fromDegrees(m_gyro.getAngle()),
-        new SwerveModulePosition[] {
-            m_frontLeft.getPosition(),
-            m_frontRight.getPosition(),
-            m_rearLeft.getPosition(),
-            m_rearRight.getPosition()
-        },
-        pose);
+    m_PoseEstimator.resetPose(pose);
   }
 
   /**
@@ -195,6 +223,27 @@ public class DriveSubsystem extends SubsystemBase {
     m_frontRight.setDesiredState(swerveModuleStates[1]);
     m_rearLeft.setDesiredState(swerveModuleStates[2]);
     m_rearRight.setDesiredState(swerveModuleStates[3]);
+  }
+
+  /**
+   * Calculate the x and y speeds from a desired distance and direction.
+   * The speeds are clamped between -1 and 1
+   * 
+   * @param desiredDistance  how far to travel in meters
+   * @param desiredDirection angle to travel at in degrees
+   * @return XYSpeeds which holds the x speed and y speed to set
+   */
+  public XYSpeeds getCartesianSpeedsFromPolarCoords(double desiredDistance, double desiredDirection) {
+    XYSpeeds finalSpeeds = new XYSpeeds();
+    XYCoordinates desiredCartesianCoords = PolarUtils.polarToCartesian(desiredDistance, desiredDirection);
+    Pose2d robotPosition = getPose();
+    double diffX = desiredCartesianCoords.getXCoord() - robotPosition.getX();
+    double diffY = desiredCartesianCoords.getYCoord() - robotPosition.getY();
+
+    finalSpeeds.setxSpeed(MathUtil.clamp(xCoordDiffPidController.calculate(diffX, 0), -1, 1));
+    finalSpeeds.setySpeed(MathUtil.clamp(yCoordDiffPidController.calculate(diffY, 0), -1, 1));
+
+    return finalSpeeds;
   }
 
   /**

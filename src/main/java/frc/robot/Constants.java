@@ -67,13 +67,13 @@ public final class Constants {
 
     public static final boolean kGyroReversed = true;
 
-    public static final double kDriveTurnP = 0.04;
-    public static final double kDriveTurnI = 0;
-    public static final double kDriveTurnD = 0;
+    public static final double kXDiffCoordP = 0.04;
+    public static final double kXDiffCoordI = 0;
+    public static final double kXDiffCoordD = 0;
 
-    public static final double kHeadingP = 0.6;
-    public static final double kHeadingI = 0;
-    public static final double kHeadingD = 0;
+    public static final double kYDiffCoordP = 0.04;
+    public static final double kYDiffCoordI = 0;
+    public static final double kYDiffCoordD = 0;
 
     public static final double rotSpeedCoefficient = 0.8;
   }
