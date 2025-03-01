@@ -4,7 +4,6 @@
 
 package frc.robot;
 
-import com.pathplanner.lib.config.RobotConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.math.geometry.Translation2d;
@@ -145,9 +144,8 @@ public final class Constants {
     public static final int kElevatorMotorCurrentLimit = 50; // amps
     public static final double kElevatorMotorRampRate = 1.0; // in seconds
     public static final double kElevatorSpeed = 1; // percent
-    public static final double kInchToMm = 25.4;
-    public static final double kHighStop = 42*kInchToMm;
-    public static final double kLowStop = 12*kInchToMm;
+    public static final double kHighStop = 5;
+    public static final double kLowStop = -1;
   }
 
   public static final class AlgaeConstants {

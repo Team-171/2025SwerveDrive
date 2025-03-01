@@ -4,19 +4,16 @@
 
 package frc.robot.commands.autos;
 
-import edu.wpi.first.units.measure.Time;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.Constants.CoralConstants;
 import frc.robot.subsystems.CoralSubsystem;
-import frc.robot.subsystems.DriveSubsystem;
 
 public class ScoreL1 extends Command {
     @SuppressWarnings({ "PMD.UnusedPrivateField", "PMD.SingularField" })
     private final CoralSubsystem coralSubsystem;
     // Distance to drive forward
     // If the robot reached the distance
-    private boolean finished;
 
     private double time;
 

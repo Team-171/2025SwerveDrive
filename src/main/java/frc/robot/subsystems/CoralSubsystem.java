@@ -7,13 +7,11 @@ import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import frc.robot.Constants.CoralConstants;
-import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class CoralSubsystem extends SubsystemBase{
 
     private final SparkMax m_rollerTop = new SparkMax(CoralConstants.kCoralMotorCanID, MotorType.kBrushless);
-    // private final DigitalInput limitSwitch = new DigitalInput(0);
 
     public CoralSubsystem() {
 
@@ -31,9 +29,6 @@ public class CoralSubsystem extends SubsystemBase{
      * @param speed Speed at which to spin the motors
      */
     public void moveCoral(double speed) {
-        /* if (limitSwitch.get()) {
-            speed = 0;
-        } */
         m_rollerTop.set(speed);
     }
 

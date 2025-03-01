@@ -55,13 +55,13 @@ public class RobotContainer {
          * The container for the robot. Contains subsystems, OI devices, and commands.
          */
         public RobotContainer() {
-                /*
-                 * autoChooser = new SendableChooser<>();
-                 * autoChooser.setDefaultOption("Drive Forward",
-                 * Autos.driveForwardAuto(m_driveSubsystem));
-                 */
-                // autoChooser.addOption("ScoreL1", Autos.ScoreL1Auto(m_driveSubsystem,
-                // m_coralSubsystem, m_elevatorSubsystem));
+
+                /* autoChooser = new SendableChooser<>();
+                autoChooser.setDefaultOption("Drive Forward",
+                                Autos.driveForwardAuto(m_driveSubsystem));
+
+                autoChooser.addOption("ScoreL1", Autos.ScoreL1Auto(m_driveSubsystem,
+                                m_coralSubsystem, m_elevatorSubsystem)); */
 
                 autoChooser = AutoBuilder.buildAutoChooser();
                 SmartDashboard.putData(autoChooser);
@@ -87,12 +87,12 @@ public class RobotContainer {
                                                 m_driveSubsystem));
 
                 m_switchSubsystem.setDefaultCommand(
-                                new RunCommand(() -> m_switchSubsystem.controllerRumble(m_driverController, limitSwitch),
+                                new RunCommand(() -> m_switchSubsystem.controllerRumble(m_driverController,
+                                                limitSwitch),
                                                 m_switchSubsystem));
 
                 m_ledSubsystem.setDefaultCommand(
-                        new RunCommand(() -> m_ledSubsystem.limitSwitchLed(limitSwitch), m_ledSubsystem)
-                );
+                                new RunCommand(() -> m_ledSubsystem.limitSwitchLed(limitSwitch), m_ledSubsystem));
 
                 /*
                  * / m_elevatorSubsystem.setDefaultCommand(

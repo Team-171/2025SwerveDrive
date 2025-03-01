@@ -15,7 +15,6 @@ public class ElevatorUpTime extends Command {
   private final ElevatorSubsystem elevatorSubsystem;
   // Distance to drive forward
   // If the robot reached the distance
-  private boolean finished;
   
   private double time;
 
