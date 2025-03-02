@@ -174,4 +174,10 @@ public final class Constants {
     public static final double kArmSpeed = 0.2; // percent
   }
 
+  public static final class ElevatorPositionConstants{
+    public static final double kLevel1 = 4;
+    public static final double kLevel2 = 4;
+    public static final double kLevel3 = 4;
+    public static final double kLevel4 = 4;
+  }
 }

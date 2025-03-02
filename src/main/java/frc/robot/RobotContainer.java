@@ -21,7 +21,9 @@ import frc.robot.Constants.OIConstants;
 import frc.robot.commands.ElevatorCommand;
 import frc.robot.commands.GetElevatorEncoder;
 import frc.robot.commands.ResetElevatorEncoder;
+import frc.robot.commands.SetSelectedPosition;
 import frc.robot.subsystems.LimitSwitchSubsystem;
+import frc.robot.subsystems.ScorePositionSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.LedSubsystem;
@@ -41,6 +43,7 @@ public class RobotContainer {
         /*
          * private final CoralSubsystem m_coralSubsystem = new CoralSubsystem();
          */
+        private final ScorePositionSubsystem m_ScorePositionSubsystem = new ScorePositionSubsystem();
         private final ElevatorSubsystem m_elevatorSubsystem = new ElevatorSubsystem();
 
         /*
@@ -56,8 +59,7 @@ public class RobotContainer {
         private SendableChooser<Command> autoChooser;
 
         XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
-        // XboxController m_operatorController = new
-        // XboxController(OIConstants.kOperatorControllerPort);
+        XboxController m_operatorController = new XboxController(OIConstants.kOperatorControllerPort);
 
         DigitalInput limitSwitch = new DigitalInput(0);
 
@@ -113,11 +115,14 @@ public class RobotContainer {
                  * m_ledSubsystem));
                  */
 
-                /* m_elevatorSubsystem.setDefaultCommand(
-                                new RunCommand(
-                                                () -> m_elevatorSubsystem.holdCurrentPosition(),
-                                                m_elevatorSubsystem)); */
+                /*
+                 * m_elevatorSubsystem.setDefaultCommand(
+                 * new RunCommand(
+                 * () -> m_elevatorSubsystem.holdCurrentPosition(),
+                 * m_elevatorSubsystem));
+                 */
 
+                 m_ScorePositionSubsystem.setDefaultCommand(new RunCommand(() -> m_ScorePositionSubsystem.setScoreLeftOrRight(m_operatorController.getPOV()), m_ScorePositionSubsystem));
         }
 
         /**
@@ -196,6 +201,15 @@ public class RobotContainer {
                                 XboxController.Button.kRightBumper.value) // move the elevator up manually
                                 .whileTrue(new ElevatorCommand(m_elevatorSubsystem,
                                                 ElevatorConstants.kElevatorSpeed));
+
+                new JoystickButton(m_operatorController, XboxController.Button.kA.value)
+                                .onTrue(new SetSelectedPosition(m_ScorePositionSubsystem, 1));
+                new JoystickButton(m_operatorController, XboxController.Button.kB.value)
+                                .onTrue(new SetSelectedPosition(m_ScorePositionSubsystem, 2));
+                new JoystickButton(m_operatorController, XboxController.Button.kX.value)
+                                .onTrue(new SetSelectedPosition(m_ScorePositionSubsystem, 3));
+                new JoystickButton(m_operatorController, XboxController.Button.kY.value)
+                                .onTrue(new SetSelectedPosition(m_ScorePositionSubsystem, 4));
         }
 
         /**
