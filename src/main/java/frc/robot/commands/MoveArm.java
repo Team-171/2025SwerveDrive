@@ -5,12 +5,13 @@
 package frc.robot.commands;
 
 import frc.robot.subsystems.AlgaeSubsystem;
+import frc.robot.subsystems.ArmSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 
 /** An example command that uses an example subsystem. */
 public class MoveArm extends Command {
   @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
-  private AlgaeSubsystem m_subsystem;
+  private ArmSubsystem m_subsystem;
   private double speed;
 
   /**
@@ -18,7 +19,7 @@ public class MoveArm extends Command {
    *
    * @param subsystem The subsystem used by this command.
    */
-  public MoveArm(AlgaeSubsystem subsystem, double speed) {
+  public MoveArm(ArmSubsystem subsystem, double speed) {
     m_subsystem = subsystem;
     this.speed = speed;
     // Use addRequirements() here to declare subsystem dependencies.

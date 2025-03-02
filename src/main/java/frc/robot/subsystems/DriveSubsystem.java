@@ -67,6 +67,8 @@ public class DriveSubsystem extends SubsystemBase {
       DriveConstants.kXDiffCoordD);
   PIDController yCoordDiffPidController = new PIDController(DriveConstants.kYDiffCoordP, DriveConstants.kYDiffCoordI,
       DriveConstants.kYDiffCoordD);
+  private final PIDController headingPidController = new PIDController(DriveConstants.kHeadingP,
+      DriveConstants.kHeadingI, DriveConstants.kHeadingD);
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {
@@ -231,7 +233,7 @@ public class DriveSubsystem extends SubsystemBase {
    * @param desiredDirection angle to travel at in degrees
    * @return XYSpeeds which holds the x speed and y speed to set
    */
-  public XYSpeeds getCartesianSpeedsFromPolarCoords(double desiredDistance, double desiredDirection) {
+  private XYSpeeds getCartesianSpeedsFromPolarCoords(double desiredDistance, double desiredDirection) {
     XYSpeeds finalSpeeds = new XYSpeeds();
     XYCoordinates desiredCartesianCoords = PolarUtils.polarToCartesian(desiredDistance, desiredDirection);
     Pose2d robotPosition = getPose();
@@ -242,6 +244,46 @@ public class DriveSubsystem extends SubsystemBase {
     finalSpeeds.setySpeed(MathUtil.clamp(yCoordDiffPidController.calculate(diffY, 0), -1, 1));
 
     return finalSpeeds;
+  }
+  /**
+   * Returns speed to rotate robot based on current heading and the desired heading. 
+   * @param desiredHeading in degrees
+   * @return speed to rotate
+   */
+  private double getDesiredHeadingSpeed(double desiredHeading) {
+    double currentHeading = getHeading();
+    currentHeading = Math.toRadians(currentHeading);
+    
+    desiredHeading = Math.toRadians(desiredHeading);
+
+    double errorHeading = desiredHeading - currentHeading;
+
+    while (errorHeading > Math.PI) {
+      errorHeading -= (2 * Math.PI);
+    }
+    while (errorHeading < -Math.PI) {
+      errorHeading += (2 * Math.PI);
+    }
+
+    // use pid to find rotation velocity
+    double desiredAngularVelocity = headingPidController.calculate(0, errorHeading);
+
+    headingPidController.reset();
+
+    // return the velocity given by pid
+    return desiredAngularVelocity;
+  }
+  /**
+   * Drives the robot based on the desired speed, direction, and heading
+   * @param desiredDistance distance to drive robot
+   * @param desiredDirection direction to drive robot
+   * @param desiredHeading desired heading/rotation
+   */
+  public void driveToDesired(double desiredDistance, double desiredDirection, double desiredHeading){
+    XYSpeeds speeds = getCartesianSpeedsFromPolarCoords(desiredDistance, desiredDirection);
+    double headingSpeed = getDesiredHeadingSpeed(desiredHeading);
+
+    drive(speeds.getxSpeed(), speeds.getySpeed(), headingSpeed, true);
   }
 
   /**
