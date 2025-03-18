@@ -10,7 +10,9 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
+import edu.wpi.first.wpilibj.DigitalInput;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DutyCycle;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.Encoder;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -25,8 +27,11 @@ public class ElevatorSubsystem extends SubsystemBase {
     private final DutyCycleEncoder encoder;
     private final Encoder relativeEncoder;
     private final EncoderPosition encoderPosition;
+    private DigitalInput digitalInput;
+    private DutyCycle sensor;
+    private double distance;
 
-    private double holdPosition; // in rotation ticks
+    private double holdPosition; // in rotation ticks when set for encoder
 
     private final PIDController pid;
 
@@ -38,15 +43,20 @@ public class ElevatorSubsystem extends SubsystemBase {
         // Get if we want to reset encoder
         SmartDashboard.putBoolean("Reset Encoder?", false);
 
+        digitalInput = new DigitalInput(4);
+        sensor = new DutyCycle(digitalInput);
+
         // Encoder
         encoder = new DutyCycleEncoder(1);
-        relativeEncoder = new Encoder(2, 3, false,EncodingType.k1X);
+        relativeEncoder = new Encoder(2, 3, false, EncodingType.k1X);
         relativeEncoder.setDistancePerPulse(0.00048828125);
-        
+
         encoderPosition = new EncoderPosition(encoder.get());
 
-        holdPosition = encoder.get();
-        holdPosition = MathUtil.clamp(holdPosition, ElevatorConstants.kLowStop, ElevatorConstants.kHighStop);
+        //holdPosition = encoder.get();
+        //holdPosition = MathUtil.clamp(holdPosition, ElevatorConstants.kLowStopEncoder, ElevatorConstants.kHighStopEncoder);
+        holdPosition = distance;
+        holdPosition = MathUtil.clamp(holdPosition, ElevatorConstants.kLowStopDistanceSensor, ElevatorConstants.kHighStopDistanceSensor);
 
         pid = new PIDController(1, 0, 0);
 
@@ -62,7 +72,7 @@ public class ElevatorSubsystem extends SubsystemBase {
         coastModeConfig
                 .idleMode(IdleMode.kCoast)
                 .smartCurrentLimit(ElevatorConstants.kElevatorMotorCurrentLimit)
-                .closedLoopRampRate(ElevatorConstants.kElevatorMotorRampRate);        
+                .closedLoopRampRate(ElevatorConstants.kElevatorMotorRampRate);
 
         m_leftLift.configure(leftLiftConfig, ResetMode.kResetSafeParameters,
                 PersistMode.kPersistParameters);
@@ -82,10 +92,12 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public void holdCurrentPosition() {
-        double currentPosition = encoder.get();
+        //double currentPosition = encoder.get();
+        double currentPosition = distance;
         if (currentPosition != 0) {
 
-            holdPosition = MathUtil.clamp(holdPosition, ElevatorConstants.kLowStop, ElevatorConstants.kHighStop);
+            //holdPosition = MathUtil.clamp(holdPosition, ElevatorConstants.kLowStopEncoder, ElevatorConstants.kHighStopEncoder);
+            holdPosition = MathUtil.clamp(holdPosition, ElevatorConstants.kLowStopDistanceSensor, ElevatorConstants.kHighStopDistanceSensor);
 
             double speed = pid.calculate(currentPosition, holdPosition);
             speed = MathUtil.clamp(speed, -ElevatorConstants.kElevatorSpeed, ElevatorConstants.kElevatorSpeed);
@@ -101,20 +113,24 @@ public class ElevatorSubsystem extends SubsystemBase {
     }
 
     public void manualMoveArm(double speed) {
-        double currentPosition = encoder.get();
-        if (ElevatorConstants.kLowStop >= currentPosition || ElevatorConstants.kHighStop <= currentPosition) {
+        //double currentPosition = encoder.get();
+        double currentPosition = distance;
+        
+        //if (ElevatorConstants.kLowStopEncoder >= currentPosition || ElevatorConstants.kHighStopEncoder <= currentPosition) {
+        if (ElevatorConstants.kLowStopDistanceSensor >= currentPosition || ElevatorConstants.kHighStopDistanceSensor <= currentPosition) {
             speed = 0;
         }
         elevatorMove(speed);
 
-        holdPosition = encoder.get();
+        //holdPosition = encoder.get();
+        holdPosition = distance;
     }
 
-    public void resetEncoder(){
+    public void resetEncoder() {
         relativeEncoder.reset();
     }
 
-    public void getEncoderValue(){
+    public void getEncoderValue() {
         SmartDashboard.putNumber("encoderSavePos", encoder.get());
     }
 
@@ -123,6 +139,11 @@ public class ElevatorSubsystem extends SubsystemBase {
         encoderPosition.updatePosition(encoder.get());
         SmartDashboard.putNumber("encoder", encoder.get());
         SmartDashboard.putNumber("Relative Encoder", relativeEncoder.getDistance());
+        // distance is non-linear and not a real measurement of distance but is good enough and consistent
+        distance = (((sensor.getHighTimeNanoseconds() / 1000) * 0.3 / 2) - 150) * 2;
+
+        SmartDashboard.putNumber("dutyCycleTime", sensor.getHighTimeNanoseconds());
+        SmartDashboard.putNumber("distance", distance);
 
         if(DriverStation.isDisabled()){
             if(SmartDashboard.getBoolean("Reset Encoder?", false)){

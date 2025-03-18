@@ -39,7 +39,7 @@ import frc.robot.subsystems.LedSubsystem;
  */
 public class RobotContainer {
         // The robot's subsystems and commands are defined here...
-        // private final DriveSubsystem m_driveSubsystem = new DriveSubsystem();
+        private final DriveSubsystem m_driveSubsystem = new DriveSubsystem();
         /*
          * private final CoralSubsystem m_coralSubsystem = new CoralSubsystem();
          */
@@ -59,7 +59,7 @@ public class RobotContainer {
         private SendableChooser<Command> autoChooser;
 
         XboxController m_driverController = new XboxController(OIConstants.kDriverControllerPort);
-        XboxController m_operatorController = new XboxController(OIConstants.kOperatorControllerPort);
+        // XboxController m_operatorController = new XboxController(OIConstants.kOperatorControllerPort);
 
         DigitalInput limitSwitch = new DigitalInput(0);
 
@@ -82,7 +82,7 @@ public class RobotContainer {
                  * SmartDashboard.putData(autoChooser);
                  */
 
-                // SmartDashboard.putData(m_driveSubsystem);
+                SmartDashboard.putData(m_driveSubsystem);
 
                 SmartDashboard.putData(new GetElevatorEncoder(m_elevatorSubsystem));
 
@@ -90,21 +90,22 @@ public class RobotContainer {
                 configureBindings();
 
                 // Configure default commands
+
+                m_driveSubsystem.setDefaultCommand(
+                                // The left stick controls translation of the robot.
+                                // Turning is controlled by the X axis of the right stick.
+                                new RunCommand(
+                                                () -> m_driveSubsystem.drive(
+                                                                -MathUtil.applyDeadband(m_driverController.getLeftY(),
+                                                                                OIConstants.kDriveDeadband),
+                                                                -MathUtil.applyDeadband(m_driverController.getLeftX(),
+                                                                                OIConstants.kDriveDeadband),
+                                                                -MathUtil.applyDeadband(m_driverController.getRightX(),
+                                                                                OIConstants.kDriveDeadband),
+                                                                true),
+                                                m_driveSubsystem));
+
                 /*
-                 * m_driveSubsystem.setDefaultCommand(
-                 * // The left stick controls translation of the robot.
-                 * // Turning is controlled by the X axis of the right stick.
-                 * new RunCommand(
-                 * () -> m_driveSubsystem.drive(
-                 * -MathUtil.applyDeadband(m_driverController.getLeftY(),
-                 * OIConstants.kDriveDeadband),
-                 * -MathUtil.applyDeadband(m_driverController.getLeftX(),
-                 * OIConstants.kDriveDeadband),
-                 * -MathUtil.applyDeadband(m_driverController.getRightX(),
-                 * OIConstants.kDriveDeadband),
-                 * m_driverController.getStartButton()),
-                 * m_driveSubsystem));
-                 * 
                  * m_switchSubsystem.setDefaultCommand(
                  * new RunCommand(() -> m_switchSubsystem.controllerRumble(m_driverController,
                  * limitSwitch),
@@ -122,7 +123,9 @@ public class RobotContainer {
                  * m_elevatorSubsystem));
                  */
 
-                 m_ScorePositionSubsystem.setDefaultCommand(new RunCommand(() -> m_ScorePositionSubsystem.setScoreLeftOrRight(m_operatorController.getPOV()), m_ScorePositionSubsystem));
+                /* m_ScorePositionSubsystem.setDefaultCommand(new RunCommand(
+                                () -> m_ScorePositionSubsystem.setScoreLeftOrRight(m_operatorController.getPOV()),
+                                m_ScorePositionSubsystem)); */
         }
 
         /**
@@ -142,17 +145,15 @@ public class RobotContainer {
         private void configureBindings() {
 
                 // set lock formation of the drive
-                /*
-                 * new JoystickButton(m_driverController, XboxController.Button.kX.value)
-                 * .whileTrue(new RunCommand(
-                 * () -> m_driveSubsystem.setX(),
-                 * m_driveSubsystem));
-                 * 
-                 * // zero the heading
-                 * new JoystickButton(m_driverController, XboxController.Button.kBack.value) //
-                 * select button
-                 * .onTrue(new RunCommand(() -> m_driveSubsystem.zeroHeading()));
-                 */
+
+                new JoystickButton(m_driverController, XboxController.Button.kX.value)
+                                .whileTrue(new RunCommand(
+                                                () -> m_driveSubsystem.setX(),
+                                                m_driveSubsystem));
+
+                // zero the heading
+                new JoystickButton(m_driverController, XboxController.Button.kBack.value) // select button
+                                .onTrue(new RunCommand(() -> m_driveSubsystem.zeroHeading()));
 
                 /*
                  * new JoystickButton(m_driverController, XboxController.Button.kA.value) //
@@ -202,14 +203,14 @@ public class RobotContainer {
                                 .whileTrue(new ElevatorCommand(m_elevatorSubsystem,
                                                 ElevatorConstants.kElevatorSpeed));
 
-                new JoystickButton(m_operatorController, XboxController.Button.kA.value)
+                /* new JoystickButton(m_operatorController, XboxController.Button.kA.value)
                                 .onTrue(new SetSelectedPosition(m_ScorePositionSubsystem, 1));
                 new JoystickButton(m_operatorController, XboxController.Button.kB.value)
                                 .onTrue(new SetSelectedPosition(m_ScorePositionSubsystem, 2));
                 new JoystickButton(m_operatorController, XboxController.Button.kX.value)
                                 .onTrue(new SetSelectedPosition(m_ScorePositionSubsystem, 3));
                 new JoystickButton(m_operatorController, XboxController.Button.kY.value)
-                                .onTrue(new SetSelectedPosition(m_ScorePositionSubsystem, 4));
+                                .onTrue(new SetSelectedPosition(m_ScorePositionSubsystem, 4)); */
         }
 
         /**

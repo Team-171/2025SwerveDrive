@@ -230,7 +230,7 @@ public class DriveSubsystem extends SubsystemBase {
    * The speeds are clamped between -1 and 1
    * 
    * @param desiredDistance  how far to travel in meters
-   * @param desiredDirection angle to travel at in degrees
+   * @param desiredDirection angle to travel at in radians
    * @return XYSpeeds which holds the x speed and y speed to set
    */
   private XYSpeeds getCartesianSpeedsFromPolarCoords(double desiredDistance, double desiredDirection) {
@@ -247,15 +247,13 @@ public class DriveSubsystem extends SubsystemBase {
   }
   /**
    * Returns speed to rotate robot based on current heading and the desired heading. 
-   * @param desiredHeading in degrees
+   * @param desiredHeading in radians
    * @return speed to rotate
    */
   private double getDesiredHeadingSpeed(double desiredHeading) {
     double currentHeading = getHeading();
     currentHeading = Math.toRadians(currentHeading);
     
-    desiredHeading = Math.toRadians(desiredHeading);
-
     double errorHeading = desiredHeading - currentHeading;
 
     while (errorHeading > Math.PI) {
@@ -275,9 +273,9 @@ public class DriveSubsystem extends SubsystemBase {
   }
   /**
    * Drives the robot based on the desired speed, direction, and heading
-   * @param desiredDistance distance to drive robot
-   * @param desiredDirection direction to drive robot
-   * @param desiredHeading desired heading/rotation
+   * @param desiredDistance distance to drive robot in meters
+   * @param desiredDirection direction to drive robot in radians
+   * @param desiredHeading desired heading/rotation in radians
    */
   public void driveToDesired(double desiredDistance, double desiredDirection, double desiredHeading){
     XYSpeeds speeds = getCartesianSpeedsFromPolarCoords(desiredDistance, desiredDirection);

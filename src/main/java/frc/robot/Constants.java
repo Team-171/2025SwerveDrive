@@ -40,9 +40,9 @@ public final class Constants {
     public static final double kRotationalSlewRate = 2.0; // percent per second (1 = 100%)
 
     // Chassis configuration
-    public static final double kTrackWidth = Units.inchesToMeters(27);
+    public static final double kTrackWidth = Units.inchesToMeters(26);
     // Distance between centers of right and left wheels on robot
-    public static final double kWheelBase = Units.inchesToMeters(27);
+    public static final double kWheelBase = Units.inchesToMeters(26.5);
     // Distance between front and back wheels on robot
 
     public static final SwerveDriveKinematics kDriveKinematics = new SwerveDriveKinematics(
@@ -58,15 +58,15 @@ public final class Constants {
     public static final double kBackRightChassisAngularOffset = Math.PI / 2;
 
     // SPARK MAX CAN IDs
-    public static final int kFrontLeftDrivingCanId = 13;
-    public static final int kRearLeftDrivingCanId = 12;
-    public static final int kFrontRightDrivingCanId = 10;
-    public static final int kRearRightDrivingCanId = 11;
+    public static final int kFrontLeftDrivingCanId = 12;
+    public static final int kRearLeftDrivingCanId = 11;
+    public static final int kFrontRightDrivingCanId = 13;
+    public static final int kRearRightDrivingCanId = 10;
 
-    public static final int kFrontLeftTurningCanId = 23;
-    public static final int kRearLeftTurningCanId = 22;
-    public static final int kFrontRightTurningCanId = 20;
-    public static final int kRearRightTurningCanId = 21;
+    public static final int kFrontLeftTurningCanId = 22;
+    public static final int kRearLeftTurningCanId = 21;
+    public static final int kFrontRightTurningCanId = 23;
+    public static final int kRearRightTurningCanId = 20;
 
     public static final boolean kGyroReversed = true;
 
@@ -156,8 +156,10 @@ public final class Constants {
     public static final int kElevatorMotorCurrentLimit = 50; // amps
     public static final double kElevatorMotorRampRate = 1.0; // in seconds
     public static final double kElevatorSpeed = 0.1; // percent
-    public static final double kHighStop = 5;
-    public static final double kLowStop = -1;
+    public static final double kHighStopEncoder = 5;
+    public static final double kLowStopEncoder = -1;
+    public static final double kHighStopDistanceSensor = 5;
+    public static final double kLowStopDistanceSensor = -1;
   }
 
   public static final class AlgaeConstants {
@@ -174,10 +176,15 @@ public final class Constants {
     public static final double kArmSpeed = 0.2; // percent
   }
 
-  public static final class ElevatorPositionConstants{
+  public static final class ElevatorPositionConstants {
     public static final double kLevel1 = 4;
     public static final double kLevel2 = 4;
     public static final double kLevel3 = 4;
     public static final double kLevel4 = 4;
+  }
+
+  public static final class LimelightConstants {
+    public static final String leftLimelight = "limelight-allison";
+    public static final String rightLimelight = "limelight";
   }
 }
