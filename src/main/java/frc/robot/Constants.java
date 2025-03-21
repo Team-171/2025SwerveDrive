@@ -9,6 +9,8 @@ import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.util.Units;
+import frc.utils.AprilUtils.Angle;
+import frc.utils.AprilUtils.AngularUnit;
 
 /**
  * The Constants class provides a convenient place for teams to hold robot-wide
@@ -145,46 +147,86 @@ public final class Constants {
   }
 
   public static final class CoralConstants {
-    public static final int kCoralMotorCanID = 31;
+    public static final int kCoralMotorCanID = 61;
     public static final double kCoralSpeed = 1;
+    public static final int kLimitSwitchChannel = 5;
   }
 
   public static final class ElevatorConstants {
-    public static final int kLeftLiftCanID = 41;
-    public static final int kRightLiftCanID = 42;
+    public static final int kBackLiftCanID = 41;
+    public static final int kFrontLiftCanID = 42;
     public static final int kElevatorPulleyChannelID = 0; // DIO port
     public static final int kElevatorMotorCurrentLimit = 50; // amps
     public static final double kElevatorMotorRampRate = 1.0; // in seconds
-    public static final double kElevatorSpeed = 0.1; // percent
+    public static final double kElevatorSpeed = .75; // percent
     public static final double kHighStopEncoder = 5;
     public static final double kLowStopEncoder = -1;
-    public static final double kHighStopDistanceSensor = 5;
-    public static final double kLowStopDistanceSensor = -1;
+    public static final double kHighStopDistanceSensor = 100;
+    public static final double kLowStopDistanceSensor = 2;
+    public static final double kElevatorP = 0.113;
+    public static final double kElevatorI = 0.0035;
+    public static final double kElevatorD = 0.0002;
   }
 
   public static final class AlgaeConstants {
-    public static final int kRollerMotorCanId = 52;
+    public static final int kRoller1MotorCanId = 51;
+    public static final int kRoller2MotorCanId = 31;
     public static final int kRollerMotorCurrentLimit = 20;
     public static final double kRollerMotorRampRate = 1.0; // in seconds
     public static final double kRollerSpeed = 1; // percent
   }
 
   public static final class ArmConstants {
-    public static final int kArmMotorCanId = 51;
+    public static final int kArmMotorCanId = 62;
     public static final int kArmMotorCurrentLimit = 50;
     public static final double kArmMotorRampRate = 0.125; // in seconds
     public static final double kArmSpeed = 0.2; // percent
+    public static final double kArmP = 0.02;
+    public static final double kArmI = 0;
+    public static final double kArmD = 0;
+    public static final double kArmClockwiseStop = .3 + 1; // Adding 1 for bounds
+    public static final double kArmCounterClockwiseStop = 0.706;  // bounds are from 0.548 -> 0.11; it crosses over the 0 while within out bounds
+    public static final double kMiddleBadBounds = 0.5;
+    public static final double kLowerLevelsCoralScore = 0.987;
+    public static final double kHome = 0.87;
+    public static final double kIntakeCoralPosition = 0.60;
+    public static final double kIntakeAlgaePosition = 0.99;
+    public static final double kHighLevelCoralScore = 0.116 + 1; // Adding 1 for bounds
+    public static final double kHighAlgaeScore = 0.96; // ?
   }
 
   public static final class ElevatorPositionConstants {
-    public static final double kLevel1 = 4;
-    public static final double kLevel2 = 4;
-    public static final double kLevel3 = 4;
-    public static final double kLevel4 = 4;
+    public static final double kHome = 6;//?
+    public static final double kLevel1 = 7;//?
+    public static final double kLevel2 = 10;
+    public static final double kLevel3 = 39;
+    public static final double kLevel4 = 100;//?
+    public static final double kIntakeCoralPosition = 36;
+    public static final double kIntakeAlgae23Position = 12; // ?
+    public static final double kIntakeAlgae34Position = 42; // ?
+    public static final double kScoreHighAlgaePosition = 95; // ?
   }
 
   public static final class LimelightConstants {
     public static final String leftLimelight = "limelight-allison";
+    public static final double leftXOffset = 0;
+    public static final double leftYOffset = 0;
+    public static final double leftHeight = 0;
+    public static final Angle leftHorizontalAngle = new Angle(0, AngularUnit.DEGREES);
+    public static final Angle leftVerticalAngle = new Angle(0, AngularUnit.DEGREES);
     public static final String rightLimelight = "limelight";
+    public static final double rightXOffset = 0;
+    public static final double rightYOffset = 0;
+    public static final double rightHeight = 0;
+    public static final Angle rightHorizontalAngle = new Angle(0, AngularUnit.DEGREES);
+    public static final Angle rightVerticalAngle = new Angle(0, AngularUnit.DEGREES);
+  }
+
+  public static final class AutoAimConstants {
+    public static final int kScoreLeftInput = 90;
+    public static final int kScoreRightInput = 270;
+    public static final double autoAimXOffset = 19; // ?
+    public static final double autoAimYOffset = 0; // ?
+    public static final double kDriveOffsetY = 0; // ?
   }
 }

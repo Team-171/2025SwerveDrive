@@ -1,5 +1,7 @@
 package frc.robot.subsystems;
 
+import java.util.ArrayList;
+
 import com.revrobotics.spark.SparkBase.PersistMode;
 import com.revrobotics.spark.SparkBase.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
@@ -11,7 +13,6 @@ import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.CounterBase.EncodingType;
 import edu.wpi.first.wpilibj.DigitalInput;
-import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DutyCycle;
 import edu.wpi.first.wpilibj.DutyCycleEncoder;
 import edu.wpi.first.wpilibj.Encoder;
@@ -21,15 +22,16 @@ import frc.robot.Constants.ElevatorConstants;
 import frc.utils.EncoderUtils.EncoderPosition;
 
 public class ElevatorSubsystem extends SubsystemBase {
-    private final SparkMax m_leftLift = new SparkMax(ElevatorConstants.kLeftLiftCanID, MotorType.kBrushless);
-    private final SparkMax m_rightLift = new SparkMax(ElevatorConstants.kRightLiftCanID, MotorType.kBrushless);
+    private final SparkMax m_leftLift = new SparkMax(ElevatorConstants.kFrontLiftCanID, MotorType.kBrushless);
+    private final SparkMax m_rightLift = new SparkMax(ElevatorConstants.kBackLiftCanID, MotorType.kBrushless);
 
     private final DutyCycleEncoder encoder;
     private final Encoder relativeEncoder;
     private final EncoderPosition encoderPosition;
     private DigitalInput digitalInput;
     private DutyCycle sensor;
-    private double distance;
+    private Double averageDistance;
+    private ArrayList<Double> previousDistances = new ArrayList<>();
 
     private double holdPosition; // in rotation ticks when set for encoder
 
@@ -37,12 +39,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private SparkMaxConfig leftLiftConfig = new SparkMaxConfig();
     private SparkMaxConfig rightLiftConfig = new SparkMaxConfig();
-    private SparkMaxConfig coastModeConfig = new SparkMaxConfig();
 
     public ElevatorSubsystem() {
-        // Get if we want to reset encoder
-        SmartDashboard.putBoolean("Reset Encoder?", false);
-
         digitalInput = new DigitalInput(4);
         sensor = new DutyCycle(digitalInput);
 
@@ -55,10 +53,14 @@ public class ElevatorSubsystem extends SubsystemBase {
 
         //holdPosition = encoder.get();
         //holdPosition = MathUtil.clamp(holdPosition, ElevatorConstants.kLowStopEncoder, ElevatorConstants.kHighStopEncoder);
-        holdPosition = distance;
+        // distance is non-linear and not a real measurement of distance but is good enough and consistent
+        averageDistance = getAverageDistance();
+        SmartDashboard.putNumber("firstDistance", averageDistance);
+        holdPosition = averageDistance;
         holdPosition = MathUtil.clamp(holdPosition, ElevatorConstants.kLowStopDistanceSensor, ElevatorConstants.kHighStopDistanceSensor);
 
-        pid = new PIDController(1, 0, 0);
+        pid = new PIDController(ElevatorConstants.kElevatorP, ElevatorConstants.kElevatorI, ElevatorConstants.kElevatorD);
+        pid.setIntegratorRange(0, 1);
 
         leftLiftConfig
                 .idleMode(IdleMode.kBrake)
@@ -69,10 +71,6 @@ public class ElevatorSubsystem extends SubsystemBase {
                 .smartCurrentLimit(ElevatorConstants.kElevatorMotorCurrentLimit)
                 .closedLoopRampRate(ElevatorConstants.kElevatorMotorRampRate)
                 .inverted(true);
-        coastModeConfig
-                .idleMode(IdleMode.kCoast)
-                .smartCurrentLimit(ElevatorConstants.kElevatorMotorCurrentLimit)
-                .closedLoopRampRate(ElevatorConstants.kElevatorMotorRampRate);
 
         m_leftLift.configure(leftLiftConfig, ResetMode.kResetSafeParameters,
                 PersistMode.kPersistParameters);
@@ -81,7 +79,10 @@ public class ElevatorSubsystem extends SubsystemBase {
                 PersistMode.kPersistParameters);
     }
 
-    public void elevatorMove(double speed) {
+    public void elevatorMove(double speed, boolean manual) {
+        if(manual){
+            holdPosition = averageDistance;
+        }
         m_leftLift.set(speed);
         m_rightLift.set(speed);
     }
@@ -93,7 +94,7 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     public void holdCurrentPosition() {
         //double currentPosition = encoder.get();
-        double currentPosition = distance;
+        double currentPosition = averageDistance;
         if (currentPosition != 0) {
 
             //holdPosition = MathUtil.clamp(holdPosition, ElevatorConstants.kLowStopEncoder, ElevatorConstants.kHighStopEncoder);
@@ -102,7 +103,7 @@ public class ElevatorSubsystem extends SubsystemBase {
             double speed = pid.calculate(currentPosition, holdPosition);
             speed = MathUtil.clamp(speed, -ElevatorConstants.kElevatorSpeed, ElevatorConstants.kElevatorSpeed);
 
-            elevatorMove(speed);
+            elevatorMove(speed, false);
         } else {
             stopElevator();
         }
@@ -114,49 +115,50 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     public void manualMoveArm(double speed) {
         //double currentPosition = encoder.get();
-        double currentPosition = distance;
+        double currentPosition = averageDistance;
         
         //if (ElevatorConstants.kLowStopEncoder >= currentPosition || ElevatorConstants.kHighStopEncoder <= currentPosition) {
         if (ElevatorConstants.kLowStopDistanceSensor >= currentPosition || ElevatorConstants.kHighStopDistanceSensor <= currentPosition) {
             speed = 0;
         }
-        elevatorMove(speed);
+        elevatorMove(speed, false);
 
         //holdPosition = encoder.get();
-        holdPosition = distance;
+        holdPosition = averageDistance;
     }
 
     public void resetEncoder() {
         relativeEncoder.reset();
     }
 
-    public void getEncoderValue() {
-        SmartDashboard.putNumber("encoderSavePos", encoder.get());
-    }
-
     @Override
     public void periodic() {
         encoderPosition.updatePosition(encoder.get());
-        SmartDashboard.putNumber("encoder", encoder.get());
-        SmartDashboard.putNumber("Relative Encoder", relativeEncoder.getDistance());
         // distance is non-linear and not a real measurement of distance but is good enough and consistent
-        distance = (((sensor.getHighTimeNanoseconds() / 1000) * 0.3 / 2) - 150) * 2;
-
-        SmartDashboard.putNumber("dutyCycleTime", sensor.getHighTimeNanoseconds());
-        SmartDashboard.putNumber("distance", distance);
-
-        if(DriverStation.isDisabled()){
-            if(SmartDashboard.getBoolean("Reset Encoder?", false)){
-                relativeEncoder.reset();
-                SmartDashboard.putBoolean("Reset Encoder?", false);
-            }
-            if(m_leftLift.configAccessor.getIdleMode() == IdleMode.kBrake){
-                m_leftLift.configure(coastModeConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
-                m_rightLift.configure(coastModeConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
-            }
-        }else if(DriverStation.isEnabled() && m_leftLift.configAccessor.getIdleMode() == IdleMode.kCoast){
-            m_leftLift.configure(leftLiftConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
-            m_rightLift.configure(rightLiftConfig, ResetMode.kNoResetSafeParameters, PersistMode.kNoPersistParameters);
-        }   
+        //distance = (((sensor.getHighTimeNanoseconds() / 1000) * 0.3 / 2.0) - 150.0) * 2.0;
+        averageDistance = getAverageDistance();
+        SmartDashboard.putNumber("averageDistance", averageDistance);
+        SmartDashboard.putNumber("holdPosition", holdPosition);
     }
+
+    private double getAverageDistance() {
+        storeNewDistanceReading();
+
+        double sum = 0;
+        for (Double reading : previousDistances) {
+            sum += reading;
+        }
+        return sum / previousDistances.size();
+    }
+
+    private void storeNewDistanceReading () {
+        double distance = (((sensor.getHighTimeNanoseconds() / 1000) * 0.3 / 2.0) - 150.0) * 2.0;
+        SmartDashboard.putNumber("distance", distance);
+        if (previousDistances.size() > 5) {
+            previousDistances.remove(0);
+        }
+        
+        previousDistances.add(distance);
+    }
+
 }

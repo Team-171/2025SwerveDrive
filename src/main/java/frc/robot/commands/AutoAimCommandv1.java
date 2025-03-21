@@ -12,7 +12,7 @@ import frc.robot.subsystems.DriveSubsystem;
 import frc.utils.LimelightHelpers;
 
 /** An example command that uses an example subsystem. */
-public class AutoAimCommand extends Command {
+public class AutoAimCommandv1 extends Command {
     @SuppressWarnings({ "PMD.UnusedPrivateField", "PMD.SingularField" })
     private final DriveSubsystem driveSubsystem;
 
@@ -25,7 +25,7 @@ public class AutoAimCommand extends Command {
      *
      * @param subsystem The subsystem used by this command.
      */
-    public AutoAimCommand(DriveSubsystem subsystem) {
+    public AutoAimCommandv1(DriveSubsystem subsystem) {
         driveSubsystem = subsystem;
 
         // Use addRequirements() here to declare subsystem dependencies.
@@ -77,6 +77,8 @@ public class AutoAimCommand extends Command {
         double desiredDirection = 0;
         desiredHeading = AprilTagIdToAngle(id);
         desiredDistance = 0;
+
+        //----------------------------- Needs an offset for left or right -------------------------------------
 
         if (bestLimelight == LimelightEnums.LEFT) {
             Pose3d targetPose = LimelightHelpers.getTargetPose3d_RobotSpace(LimelightConstants.leftLimelight);

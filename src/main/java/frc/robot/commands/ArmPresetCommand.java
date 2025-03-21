@@ -1,25 +1,24 @@
 
 package frc.robot.commands;
 
-import frc.robot.subsystems.ElevatorSubsystem;
+import frc.robot.subsystems.ArmSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 
 /** An example command that uses an example subsystem. */
-public class ElevatorPosition extends Command {
+public class ArmPresetCommand extends Command {
     @SuppressWarnings({ "PMD.UnusedPrivateField", "PMD.SingularField" })
-    private final ElevatorSubsystem m_subsystem;
-    private final double position;
+    private final ArmSubsystem m_armSubsystem;
+    private double position;
 
     /**
      * Creates a new ExampleCommand.
      *
      * @param subsystem The subsystem used by this command.
      */
-    public ElevatorPosition(ElevatorSubsystem subsystem, double position) {
-        m_subsystem = subsystem;
-        this.position = position;
+    public ArmPresetCommand(ArmSubsystem subsystem, double position) {
+        m_armSubsystem = subsystem;
         // Use addRequirements() here to declare subsystem dependencies.
-        addRequirements(subsystem);
+        addRequirements(m_armSubsystem);
     }
 
     // Called when the command is initially scheduled.
@@ -30,7 +29,7 @@ public class ElevatorPosition extends Command {
     // Called every time the scheduler runs while the command is scheduled.
     @Override
     public void execute() {
-        m_subsystem.setHoldPosition(position);
+        m_armSubsystem.setHoldPosition(position);
     }
 
     // Called once the command ends or is interrupted.

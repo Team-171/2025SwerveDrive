@@ -1,22 +1,24 @@
 
 package frc.robot.commands;
 
-import frc.robot.subsystems.ElevatorSubsystem;
+import frc.helperObjects.DriveSideEnum;
+import frc.robot.subsystems.ScorePositionSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 
 /** An example command that uses an example subsystem. */
-public class GetElevatorEncoder extends Command {
+public class SetScoreSideCoral extends Command {
     @SuppressWarnings({ "PMD.UnusedPrivateField", "PMD.SingularField" })
-    private final ElevatorSubsystem m_subsystem;
+    private final ScorePositionSubsystem m_subsystem;
+    private final DriveSideEnum side;
 
     /**
      * Creates a new ExampleCommand.
      *
      * @param subsystem The subsystem used by this command.
      */
-    public GetElevatorEncoder(ElevatorSubsystem subsystem) {
+    public SetScoreSideCoral(ScorePositionSubsystem subsystem, DriveSideEnum side) {
         m_subsystem = subsystem;
-        
+        this.side = side;
         // Use addRequirements() here to declare subsystem dependencies.
         addRequirements(subsystem);
     }
@@ -29,7 +31,7 @@ public class GetElevatorEncoder extends Command {
     // Called every time the scheduler runs while the command is scheduled.
     @Override
     public void execute() {
-        m_subsystem.getEncoderValue();
+        m_subsystem.setScoreLeftOrRight(side);
     }
 
     // Called once the command ends or is interrupted.

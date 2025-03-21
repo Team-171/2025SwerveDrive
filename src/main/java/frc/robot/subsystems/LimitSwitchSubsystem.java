@@ -19,7 +19,6 @@ public class LimitSwitchSubsystem extends SubsystemBase {
             controller.setRumble(RumbleType.kBothRumble, 0);
         }
 
-        SmartDashboard.putBoolean("Limit Switch", limitSwitch.get());
     }
 
     @Override

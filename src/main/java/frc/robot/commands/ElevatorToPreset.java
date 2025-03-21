@@ -1,26 +1,26 @@
 
 package frc.robot.commands;
 
-import frc.helperObjects.StateEnum;
+import frc.robot.subsystems.ElevatorSubsystem;
 import frc.robot.subsystems.ScorePositionSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 
 /** An example command that uses an example subsystem. */
-public class SetSelectedPosition extends Command {
+public class ElevatorToPreset extends Command {
     @SuppressWarnings({ "PMD.UnusedPrivateField", "PMD.SingularField" })
-    private final ScorePositionSubsystem m_subsystem;
-    private final StateEnum state;
+    private final ElevatorSubsystem m_elevatorSubsystem;
+    private final ScorePositionSubsystem m_scoreSubsystem;
 
     /**
      * Creates a new ExampleCommand.
      *
      * @param subsystem The subsystem used by this command.
      */
-    public SetSelectedPosition(ScorePositionSubsystem subsystem, StateEnum state) {
-        m_subsystem = subsystem;
-        this.state = state;
+    public ElevatorToPreset(ElevatorSubsystem elevatorSubsystem, ScorePositionSubsystem scorePositionSubsystem) {
+        m_elevatorSubsystem = elevatorSubsystem;
+        m_scoreSubsystem = scorePositionSubsystem;
         // Use addRequirements() here to declare subsystem dependencies.
-        addRequirements(subsystem);
+        addRequirements(elevatorSubsystem, scorePositionSubsystem);
     }
 
     // Called when the command is initially scheduled.
@@ -31,7 +31,7 @@ public class SetSelectedPosition extends Command {
     // Called every time the scheduler runs while the command is scheduled.
     @Override
     public void execute() {
-        m_subsystem.setScoreLevel(state);
+        m_elevatorSubsystem.setHoldPosition(m_scoreSubsystem.getLevelElevatorHoldPosition());
     }
 
     // Called once the command ends or is interrupted.

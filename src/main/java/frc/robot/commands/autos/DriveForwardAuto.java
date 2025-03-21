@@ -4,11 +4,15 @@
 
 package frc.robot.commands.autos;
 
+import edu.wpi.first.math.geometry.Pose2d;
+import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.wpilibj.Timer;
 import edu.wpi.first.wpilibj2.command.Command;
 import frc.robot.subsystems.DriveSubsystem;
 
-
+/**
+ * Line up the robots bumper that is closest to the middle with the april tag on the blue alliance barge
+ */
 public class DriveForwardAuto extends Command {
   @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
   private final DriveSubsystem driveSubsystem;
@@ -40,6 +44,8 @@ public class DriveForwardAuto extends Command {
   @Override
   public void initialize() {
     time = Timer.getFPGATimestamp();
+    // Pose2d startingPose = new Pose2d(310.5, 256.64, new Rotation2d(180));
+    // driveSubsystem.resetOdometry(startingPose);
   }
 
   // Called every time the scheduler runs while the command is scheduled.

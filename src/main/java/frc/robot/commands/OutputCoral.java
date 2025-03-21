@@ -8,7 +8,7 @@ import frc.robot.subsystems.CoralSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 
 /** An example command that uses an example subsystem. */
-public class MoveCoral extends Command {
+public class OutputCoral extends Command {
   @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
   private final CoralSubsystem m_coralSubsystem;
   private double speed;
@@ -18,7 +18,7 @@ public class MoveCoral extends Command {
    *
    * @param subsystem The subsystem used by this command.
    */
-  public MoveCoral(CoralSubsystem subsystem, double speed) {
+  public OutputCoral(CoralSubsystem subsystem, double speed) {
     m_coralSubsystem = subsystem;
     this.speed = speed;
     // Use addRequirements() here to declare subsystem dependencies.
@@ -32,7 +32,7 @@ public class MoveCoral extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-      m_coralSubsystem.moveCoral(speed);
+      m_coralSubsystem.outputCoral(speed);
   } 
 
   // Called once the command ends or is interrupted.

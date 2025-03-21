@@ -41,14 +41,14 @@ public class ScoreL1 extends Command {
     @Override
     public void execute() {
         // Drives forward and returns if it reached the destination
-        coralSubsystem.moveCoral(-CoralConstants.kCoralSpeed);
+        coralSubsystem.outputCoral(CoralConstants.kCoralSpeed);
     }
 
     // Called once the command ends or is interrupted.
     @Override
     public void end(boolean interrupted) {
         // When the robot is at the destination, set the speed to 0
-        coralSubsystem.moveCoral(0);
+        coralSubsystem.stopMotion();
     }
 
     // Returns true when the command should end.

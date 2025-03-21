@@ -76,6 +76,9 @@ public class DriveSubsystem extends SubsystemBase {
     HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_MaxSwerve);
 
     RobotConfig config = null;
+
+    m_gyro.setAngleAdjustment(180);
+
     try {
       config = RobotConfig.fromGUISettings();
     } catch (Exception e) {
@@ -140,7 +143,6 @@ public class DriveSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     SmartDashboard.putNumber("gyro", m_gyro.getAngle());
-    SmartDashboard.putBoolean("gyroConnected", m_gyro.isConnected());
 
     m_PoseEstimator.update(m_gyro.getRotation2d(), new SwerveModulePosition[] {
         m_frontLeft.getPosition(),
@@ -176,7 +178,6 @@ public class DriveSubsystem extends SubsystemBase {
     }
     SmartDashboard.putData(m_field);
     m_field.setRobotPose(m_PoseEstimator.getEstimatedPosition());
-
   }
 
   /**
@@ -226,34 +227,35 @@ public class DriveSubsystem extends SubsystemBase {
   }
 
   /**
-   * Calculate the x and y speeds from a desired distance and direction.
-   * The speeds are clamped between -1 and 1
+   * Calculate the x and y speeds to travel to the desired coordinate
    * 
-   * @param desiredDistance  how far to travel in meters
-   * @param desiredDirection angle to travel at in radians
-   * @return XYSpeeds which holds the x speed and y speed to set
+   * @param xCoordinate the x coordinate of the target location
+   * @param yCoordinate the y coordinate of the target location
+   * @return XYSpeeds the speeds to travel
    */
-  private XYSpeeds getCartesianSpeedsFromPolarCoords(double desiredDistance, double desiredDirection) {
+  private XYSpeeds getCalculatedXYSpeeds(double xCoordinate, double yCoordinate) {
     XYSpeeds finalSpeeds = new XYSpeeds();
-    XYCoordinates desiredCartesianCoords = PolarUtils.polarToCartesian(desiredDistance, desiredDirection);
     Pose2d robotPosition = getPose();
-    double diffX = desiredCartesianCoords.getXCoord() - robotPosition.getX();
-    double diffY = desiredCartesianCoords.getYCoord() - robotPosition.getY();
+    double diffX = xCoordinate - robotPosition.getX();
+    double diffY = yCoordinate - robotPosition.getY();
 
     finalSpeeds.setxSpeed(MathUtil.clamp(xCoordDiffPidController.calculate(diffX, 0), -1, 1));
     finalSpeeds.setySpeed(MathUtil.clamp(yCoordDiffPidController.calculate(diffY, 0), -1, 1));
 
     return finalSpeeds;
   }
+
   /**
-   * Returns speed to rotate robot based on current heading and the desired heading. 
+   * Returns speed to rotate robot based on current heading and the desired
+   * heading.
+   * 
    * @param desiredHeading in radians
    * @return speed to rotate
    */
   private double getDesiredHeadingSpeed(double desiredHeading) {
     double currentHeading = getHeading();
     currentHeading = Math.toRadians(currentHeading);
-    
+
     double errorHeading = desiredHeading - currentHeading;
 
     while (errorHeading > Math.PI) {
@@ -271,14 +273,28 @@ public class DriveSubsystem extends SubsystemBase {
     // return the velocity given by pid
     return desiredAngularVelocity;
   }
+
   /**
    * Drives the robot based on the desired speed, direction, and heading
-   * @param desiredDistance distance to drive robot in meters
+   * 
+   * @param desiredDistance  distance to drive robot in meters
    * @param desiredDirection direction to drive robot in radians
-   * @param desiredHeading desired heading/rotation in radians
+   * @param desiredHeading   desired heading/rotation in radians
    */
-  public void driveToDesired(double desiredDistance, double desiredDirection, double desiredHeading){
-    XYSpeeds speeds = getCartesianSpeedsFromPolarCoords(desiredDistance, desiredDirection);
+  public void driveToDesired(double desiredDistance, double desiredDirection, double desiredHeading) {
+    XYCoordinates coordinates = PolarUtils.polarToCartesian(desiredDistance, desiredDirection);
+    driveToCartesianCoordinate(coordinates.getXCoord(), coordinates.getYCoord(), desiredHeading);
+  }
+
+  /**
+   * Drives the robot to the field coordinate provided
+   * 
+   * @param x              the x coordinate of the target location
+   * @param y              the y coordinate of the target location
+   * @param desiredHeading the desired final heading of the robot in radians
+   */
+  public void driveToCartesianCoordinate(double x, double y, double desiredHeading) {
+    XYSpeeds speeds = getCalculatedXYSpeeds(x, y);
     double headingSpeed = getDesiredHeadingSpeed(desiredHeading);
 
     drive(speeds.getxSpeed(), speeds.getySpeed(), headingSpeed, true);

@@ -1,54 +1,47 @@
 package frc.robot.subsystems;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import frc.helperObjects.DriveSide;
-import frc.robot.Constants.ElevatorPositionConstants;
-
+import frc.helperObjects.DriveSideEnum;
+import frc.helperObjects.StateEnum;
 public class ScorePositionSubsystem extends SubsystemBase{
     
-    double levelPosition;
-    DriveSide side;
+    StateEnum levelPosition = StateEnum.CORAL_LEVEL_1;
+    DriveSideEnum side;
+    
+    public ScorePositionSubsystem() {}
 
-    public ScorePositionSubsystem() {
-
+    // Set the score position to a coral level
+    public void setScoreLevel(StateEnum level){
+        levelPosition = level;
     }
 
-    public void setScoreLevel(int level){
-        switch (level) {
-            case 1:
-                levelPosition = ElevatorPositionConstants.kLevel1;
-                break;
-            case 2: 
-                levelPosition = ElevatorPositionConstants.kLevel2;
-                break;
-            case 3:
-                levelPosition = ElevatorPositionConstants.kLevel3;
-                break;
-            case 4:
-                levelPosition = ElevatorPositionConstants.kLevel4;
-                break;        
-            default:
-                levelPosition = ElevatorPositionConstants.kLevel1;
-                break;
-        }
+    public void setScoreLeftOrRight(DriveSideEnum driveSideEnum){
+        side = driveSideEnum;
     }
 
-    public void setScoreLeftOrRight(int povPosition){
-        switch (povPosition) {
-            case 90:
-                side = DriveSide.RIGHT;
-                break;
-            case 270:
-                side = DriveSide.LEFT;
-                break;
-            default:
-                break;
-        }
+    public DriveSideEnum getDriveSide() {
+        return side;
     }
 
-    public double returnLevelHoldPosition(){
+    public double getLevelElevatorHoldPosition(){
+        return levelPosition.elevatorValue;
+    }  
+
+    public double getLevelArmPosition() {
+        return levelPosition.armValue;
+    }
+
+    public StateEnum getLevelState() {
         return levelPosition;
     }
 
+    public int getLevel(){
+        return levelPosition.ordinal() + 1;  // Translate from zero-indexed to one-indexed
+    } 
     
+    @Override
+    public void periodic(){
+        SmartDashboard.putNumber("Selected Level", getLevel());
+    }
 }

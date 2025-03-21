@@ -44,7 +44,7 @@ public class ElevatorUpTime extends Command {
   @Override
   public void execute() {
     // Drives forward and returns if it reached the destination
-    elevatorSubsystem.elevatorMove(ElevatorConstants.kElevatorSpeed);
+    elevatorSubsystem.elevatorMove(ElevatorConstants.kElevatorSpeed, true);
   }
 
   // Called once the command ends or is interrupted.
