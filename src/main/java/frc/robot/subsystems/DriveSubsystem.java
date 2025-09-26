@@ -20,17 +20,21 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.estimator.SwerveDrivePoseEstimator;
 import edu.wpi.first.math.geometry.Pose2d;
 import edu.wpi.first.math.geometry.Rotation2d;
+import edu.wpi.first.math.geometry.Translation2d;
 import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import frc.helperObjects.XYCoordinates;
 import frc.helperObjects.XYSpeeds;
 import frc.robot.Constants.DriveConstants;
+import frc.robot.Constants.LimelightConstants;
+import frc.utils.GyroWrapper;
 import frc.utils.LimelightHelpers;
 import frc.utils.PolarUtils;
 
@@ -59,6 +63,8 @@ public class DriveSubsystem extends SubsystemBase {
   // The gyro sensor
   private final AHRS m_gyro = new AHRS(NavXComType.kMXP_SPI);
 
+  private final GyroWrapper m_GyroWrapper = new GyroWrapper(m_gyro);
+  
   private final Field2d m_field = new Field2d();
 
   private final SwerveDrivePoseEstimator m_PoseEstimator;
@@ -77,7 +83,8 @@ public class DriveSubsystem extends SubsystemBase {
 
     RobotConfig config = null;
 
-    m_gyro.setAngleAdjustment(180);
+    // Need to change depending on current alliance
+    m_GyroWrapper.setOffset(180);
 
     try {
       config = RobotConfig.fromGUISettings();
@@ -87,7 +94,7 @@ public class DriveSubsystem extends SubsystemBase {
     }
 
     m_PoseEstimator = new SwerveDrivePoseEstimator(DriveConstants.kDriveKinematics,
-        m_gyro.getRotation2d(),
+        m_GyroWrapper.getRotation2d(),
         new SwerveModulePosition[] {
             m_frontLeft.getPosition(),
             m_frontRight.getPosition(),
@@ -143,41 +150,44 @@ public class DriveSubsystem extends SubsystemBase {
   @Override
   public void periodic() {
     SmartDashboard.putNumber("gyro", m_gyro.getAngle());
+    SmartDashboard.putNumber("estimated gyro:", getHeading());
 
-    m_PoseEstimator.update(m_gyro.getRotation2d(), new SwerveModulePosition[] {
-        m_frontLeft.getPosition(),
-        m_frontRight.getPosition(),
-        m_rearLeft.getPosition(),
-        m_rearRight.getPosition()
-    });
+    // m_PoseEstimator.update(m_GyroWrapper.getRotation2d(), new SwerveModulePosition[] {
+    //     m_frontLeft.getPosition(),
+    //     m_frontRight.getPosition(),
+    //     m_rearLeft.getPosition(),
+    //     m_rearRight.getPosition()
+    // });
 
-    LimelightHelpers.SetRobotOrientation("limelight-allison",
-        m_PoseEstimator.getEstimatedPosition().getRotation().getDegrees(),
-        0, 0, 0, 0, 0);
+    // LimelightHelpers.SetRobotOrientation(LimelightConstants.rightLimelight,
+    //     m_PoseEstimator.getEstimatedPosition().getRotation().getDegrees(),
+    //     0, 0, 0, 0, 0);
 
-    boolean doRejectUpdate = false;
+    // boolean doRejectUpdate = false;
 
-    try {
-      LimelightHelpers.PoseEstimate poseEstimate = LimelightHelpers
-          .getBotPoseEstimate_wpiBlue_MegaTag2("limelight-allison");
-      if (Math.abs(m_gyro.getRate()) > 720) // if our angular velocity is greater than 720 degrees per second, ignore
-                                            // vision updates
-      {
-        doRejectUpdate = true;
-      }
-      if (poseEstimate.tagCount == 0) {
-        doRejectUpdate = true;
-      }
-      if (!doRejectUpdate) {
-        m_PoseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(.7, .7, 9999999));
-        m_PoseEstimator.addVisionMeasurement(
-            poseEstimate.pose,
-            poseEstimate.timestampSeconds);
-      }
-    } catch (Exception e) {
-    }
+    // try {
+    //   LimelightHelpers.PoseEstimate poseEstimate = LimelightHelpers
+    //       .getBotPoseEstimate_wpiBlue_MegaTag2(LimelightConstants.rightLimelight);
+    //   if (Math.abs(m_gyro.getRate()) > 720) // if our angular velocity is greater than 720 degrees per second, ignore
+    //                                         // vision updates
+    //   {
+    //     doRejectUpdate = true;
+    //   }
+    //   if (poseEstimate.tagCount == 0) {
+    //     doRejectUpdate = true;
+    //   }
+    //   if (!doRejectUpdate) {
+    //     m_PoseEstimator.setVisionMeasurementStdDevs(VecBuilder.fill(.7, .7, 9999999));
+    //     m_PoseEstimator.addVisionMeasurement(
+    //         poseEstimate.pose,
+    //         poseEstimate.timestampSeconds);
+    //   }
+    // } catch (Exception e) {
+    // }
     SmartDashboard.putData(m_field);
-    m_field.setRobotPose(m_PoseEstimator.getEstimatedPosition());
+    SmartDashboard.putNumber("Robot X", m_PoseEstimator.getEstimatedPosition().getX());
+    SmartDashboard.putNumber("Robot Y", m_PoseEstimator.getEstimatedPosition().getY());
+    //m_field.setRobotPose(m_PoseEstimator.getEstimatedPosition());
   }
 
   /**
@@ -195,7 +205,22 @@ public class DriveSubsystem extends SubsystemBase {
    * @param pose The pose to which to set the odometry.
    */
   public void resetOdometry(Pose2d pose) {
-    m_PoseEstimator.resetPose(pose);
+    // m_PoseEstimator.resetPose(pose);
+    m_PoseEstimator.resetPosition(m_GyroWrapper.getRotation2d(), new SwerveModulePosition[] {
+        m_frontLeft.getPosition(),
+        m_frontRight.getPosition(),
+        m_rearLeft.getPosition(),
+        m_rearRight.getPosition()
+    }, pose);
+  }
+
+  /**
+   * Resets the odometry, but keeps the rotation the same.
+   * 
+   * @param translation The translation to which to set the odometry
+   */
+  public void resetTranslation(Translation2d translation) {
+    m_PoseEstimator.resetTranslation(translation);
   }
 
   /**
@@ -216,7 +241,7 @@ public class DriveSubsystem extends SubsystemBase {
     var swerveModuleStates = DriveConstants.kDriveKinematics.toSwerveModuleStates(
         fieldRelative
             ? ChassisSpeeds.fromFieldRelativeSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered,
-                Rotation2d.fromDegrees(m_gyro.getAngle()))
+                Rotation2d.fromDegrees(m_GyroWrapper.getAngle()))
             : new ChassisSpeeds(xSpeedDelivered, ySpeedDelivered, rotDelivered));
     SwerveDriveKinematics.desaturateWheelSpeeds(
         swerveModuleStates, DriveConstants.kMaxSpeedMetersPerSecond);
@@ -297,7 +322,11 @@ public class DriveSubsystem extends SubsystemBase {
     XYSpeeds speeds = getCalculatedXYSpeeds(x, y);
     double headingSpeed = getDesiredHeadingSpeed(desiredHeading);
 
-    drive(speeds.getxSpeed(), speeds.getySpeed(), headingSpeed, true);
+    SmartDashboard.putNumber("X Speed Output", speeds.getxSpeed());
+    SmartDashboard.putNumber("Y Speed Output", speeds.getySpeed());
+    SmartDashboard.putNumber("Heading Speed Output", headingSpeed);
+
+    // drive(speeds.getxSpeed(), speeds.getySpeed(), headingSpeed, true);
   }
 
   /**
@@ -343,7 +372,7 @@ public class DriveSubsystem extends SubsystemBase {
    * @return the robot's heading in degrees, from -180 to 180
    */
   public double getHeading() {
-    return Rotation2d.fromDegrees(m_gyro.getAngle()).getDegrees();
+    return m_GyroWrapper.getAngle();
   }
 
   /**

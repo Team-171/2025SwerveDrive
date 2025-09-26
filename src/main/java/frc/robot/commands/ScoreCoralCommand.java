@@ -2,24 +2,28 @@
 package frc.robot.commands;
 
 import frc.robot.subsystems.ArmSubsystem;
+import frc.robot.subsystems.ElevatorSubsystem;
+import frc.robot.subsystems.ScorePositionSubsystem;
 import edu.wpi.first.wpilibj2.command.Command;
 
 /** An example command that uses an example subsystem. */
-public class ArmPresetCommand extends Command {
+public class ScoreCoralCommand extends Command {
     @SuppressWarnings({ "PMD.UnusedPrivateField", "PMD.SingularField" })
-    private final ArmSubsystem m_armSubsystem;
-    private double position;
+    private final ElevatorSubsystem m_elevatorSubsystem;
+    private final ScorePositionSubsystem m_scoreSubsystem;
+    private final ArmSubsystem m_ArmSubsystem;
 
     /**
      * Creates a new ExampleCommand.
      *
      * @param subsystem The subsystem used by this command.
      */
-    public ArmPresetCommand(ArmSubsystem subsystem, double position) {
-        m_armSubsystem = subsystem;
-        this.position = position;
+    public ScoreCoralCommand(ElevatorSubsystem elevatorSubsystem, ArmSubsystem armSubsystem, ScorePositionSubsystem scorePositionSubsystem) {
+        m_elevatorSubsystem = elevatorSubsystem;
+        m_scoreSubsystem = scorePositionSubsystem;
+        m_ArmSubsystem = armSubsystem;
         // Use addRequirements() here to declare subsystem dependencies.
-        addRequirements(m_armSubsystem);
+        addRequirements(elevatorSubsystem, scorePositionSubsystem, armSubsystem);
     }
 
     // Called when the command is initially scheduled.
@@ -30,7 +34,8 @@ public class ArmPresetCommand extends Command {
     // Called every time the scheduler runs while the command is scheduled.
     @Override
     public void execute() {
-        m_armSubsystem.setHoldPosition(position);
+        m_elevatorSubsystem.setHoldPosition(m_scoreSubsystem.getLevelElevatorHoldPosition());
+        //m_ArmSubsystem.setHoldPosition(m_scoreSubsystem.getLevelArmPosition());
     }
 
     // Called once the command ends or is interrupted.

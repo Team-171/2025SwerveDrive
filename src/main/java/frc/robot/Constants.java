@@ -29,6 +29,7 @@ public final class Constants {
     public static final int kDriverControllerPort = 0;
     public static final int kOperatorControllerPort = 1;
     public static final double kDriveDeadband = 0.15;
+    public static final double kRotationDeadband = 0.3;
   }
 
   public static final class DriveConstants {
@@ -158,10 +159,10 @@ public final class Constants {
     public static final int kElevatorPulleyChannelID = 0; // DIO port
     public static final int kElevatorMotorCurrentLimit = 50; // amps
     public static final double kElevatorMotorRampRate = 1.0; // in seconds
-    public static final double kElevatorSpeed = .75; // percent
-    public static final double kHighStopEncoder = 5;
+    public static final double kElevatorSpeed = 1; // percent
+    public static final double kHighStopEncoder = 3;
     public static final double kLowStopEncoder = -1;
-    public static final double kHighStopDistanceSensor = 100;
+    public static final double kHighStopDistanceSensor = 103.5;
     public static final double kLowStopDistanceSensor = 2;
     public static final double kElevatorP = 0.113;
     public static final double kElevatorI = 0.0035;
@@ -173,7 +174,7 @@ public final class Constants {
     public static final int kRoller2MotorCanId = 31;
     public static final int kRollerMotorCurrentLimit = 20;
     public static final double kRollerMotorRampRate = 1.0; // in seconds
-    public static final double kRollerSpeed = 1; // percent
+    public static final double kRollerSpeed = 0.2; // percent
   }
 
   public static final class ArmConstants {
@@ -181,52 +182,55 @@ public final class Constants {
     public static final int kArmMotorCurrentLimit = 50;
     public static final double kArmMotorRampRate = 0.125; // in seconds
     public static final double kArmSpeed = 0.2; // percent
-    public static final double kArmP = 0.02;
+    public static final double kArmP = 1.5;
     public static final double kArmI = 0;
     public static final double kArmD = 0;
     public static final double kArmClockwiseStop = .3 + 1; // Adding 1 for bounds
     public static final double kArmCounterClockwiseStop = 0.706;  // bounds are from 0.548 -> 0.11; it crosses over the 0 while within out bounds
     public static final double kMiddleBadBounds = 0.5;
-    public static final double kLowerLevelsCoralScore = 0.987;
+    public static final double kLowerLevelsCoralScore = 1.272;
     public static final double kHome = 0.87;
-    public static final double kIntakeCoralPosition = 0.60;
-    public static final double kIntakeAlgaePosition = 0.99;
-    public static final double kHighLevelCoralScore = 0.116 + 1; // Adding 1 for bounds
-    public static final double kHighAlgaeScore = 0.96; // ?
+    public static final double kIntakeCoralPosition = 0.755;
+    public static final double kIntakeAlgaePosition = 0.755;
+    public static final double kHighLevelCoralScore = 0.244 + 1; // Adding 1 for bounds
+    public static final double kHighAlgaeScore = 0.7;
+    public static final double kRotateTo = 1.17;
   }
 
   public static final class ElevatorPositionConstants {
     public static final double kHome = 6;//?
     public static final double kLevel1 = 7;//?
-    public static final double kLevel2 = 10;
-    public static final double kLevel3 = 39;
-    public static final double kLevel4 = 100;//?
-    public static final double kIntakeCoralPosition = 36;
-    public static final double kIntakeAlgae23Position = 12; // ?
-    public static final double kIntakeAlgae34Position = 42; // ?
-    public static final double kScoreHighAlgaePosition = 95; // ?
+    public static final double kLevel2 = 39;
+    public static final double kLevel3 = 68;
+    public static final double kLevel4 = 103.5;//?
+    public static final double kIntakeCoralPosition = 3.5;
+    public static final double kIntakeAlgae23Position = 25; // ?
+    public static final double kIntakeAlgae34Position = 55; // ?
+    public static final double kScoreHighAlgaePosition = 103.5; // ?
   }
 
   public static final class LimelightConstants {
-    public static final String leftLimelight = "limelight-allison";
-    public static final double leftXOffset = 0;
-    public static final double leftYOffset = 0;
-    public static final double leftHeight = 0;
-    public static final Angle leftHorizontalAngle = new Angle(0, AngularUnit.DEGREES);
-    public static final Angle leftVerticalAngle = new Angle(0, AngularUnit.DEGREES);
-    public static final String rightLimelight = "limelight";
-    public static final double rightXOffset = 0;
-    public static final double rightYOffset = 0;
-    public static final double rightHeight = 0;
-    public static final Angle rightHorizontalAngle = new Angle(0, AngularUnit.DEGREES);
-    public static final Angle rightVerticalAngle = new Angle(0, AngularUnit.DEGREES);
+    public static final String leftLimelight = "limelight-left";
+    public static final double leftXOffset = 12.75;
+    public static final double leftYOffset = 11.25;
+    public static final double leftHeight = 8.75;
+    public static final Angle leftHorizontalAngle = new Angle(-37, AngularUnit.DEGREES);
+    public static final Angle leftVerticalAngle = new Angle(15, AngularUnit.DEGREES);
+    public static final String rightLimelight = "limelight-right";
+    public static final double rightXOffset = 12.75;
+    public static final double rightYOffset = -11.25;
+    public static final double rightHeight = 8.75;
+    public static final Angle rightHorizontalAngle = new Angle(37, AngularUnit.DEGREES);
+    public static final Angle rightVerticalAngle = new Angle(15, AngularUnit.DEGREES);
   }
 
   public static final class AutoAimConstants {
     public static final int kScoreLeftInput = 90;
     public static final int kScoreRightInput = 270;
-    public static final double autoAimXOffset = 19; // ?
-    public static final double autoAimYOffset = 0; // ?
-    public static final double kDriveOffsetY = 0; // ?
+    public static final double autoAimXOffset = 18.25; // ?
+    public static final double autoAimYOffset = -2; // ?
+    public static final double kDriveOffsetY = 6; // 
+    // 37 degrees angled into robot
+    // tilt upwards is 15 degrees
   }
 }

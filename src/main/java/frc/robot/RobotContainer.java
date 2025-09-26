@@ -4,11 +4,6 @@
 
 package frc.robot;
 
-import com.pathplanner.lib.auto.AutoBuilder;
-import com.pathplanner.lib.auto.NamedCommands;
-import com.pathplanner.lib.commands.PathPlannerAuto;
-import com.pathplanner.lib.path.PathPlannerPath;
-
 import edu.wpi.first.hal.SimLong;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -32,17 +27,22 @@ import frc.robot.Constants.ElevatorConstants;
 import frc.robot.Constants.ElevatorPositionConstants;
 import frc.robot.Constants.OIConstants;
 import frc.robot.commands.ArmPresetCommand;
+import frc.robot.commands.ArmToPreset;
+import frc.robot.commands.AutoAimDrive;
 import frc.robot.commands.ElevatorCommand;
 import frc.robot.commands.ElevatorPresetCommand;
 import frc.robot.commands.ElevatorToPreset;
 import frc.robot.commands.GoToStateCommand;
 import frc.robot.commands.OutputCoral;
+import frc.robot.commands.ScoreCoralCommand;
 import frc.robot.commands.SetScoreSideCoral;
 import frc.robot.commands.IntakeCoral;
+import frc.robot.commands.InvertElevatorCommand;
 import frc.robot.commands.MoveAlgae;
 import frc.robot.commands.MoveArm;
 import frc.robot.commands.SetSelectedPosition;
 import frc.robot.commands.ToggleAlgaeIntakeCommand;
+import frc.robot.commands.autos.Autos;
 import frc.robot.commands.autos.DriveForwardAuto;
 import frc.robot.subsystems.LimitSwitchSubsystem;
 import frc.robot.subsystems.ScorePositionSubsystem;
@@ -51,7 +51,6 @@ import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.CoralSubsystem;
 import frc.robot.subsystems.DriveSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
-import frc.robot.subsystems.LedSubsystem;
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -75,11 +74,7 @@ public class RobotContainer {
 
         private final AlgaeSubsystem m_algaeSubsystem = new AlgaeSubsystem();
 
-        /*
-         * private final LimitSwitchSubsystem m_switchSubsystem = new
-         * LimitSwitchSubsystem();
-         * private final LedSubsystem m_ledSubsystem = new LedSubsystem();
-         */
+        private static boolean autoAimEnabled = false;
 
         private SendableChooser<Command> autoChooser;
 
@@ -91,59 +86,43 @@ public class RobotContainer {
          */
         public RobotContainer() {
 
-                autoChooser = new SendableChooser<>();
-                // autoChooser.setDefaultOption("Drive Forward",
-                //                 Autos.driveForwardAuto(m_driveSubsystem));
+                autoChooser = Autos.buildChooser(m_driveSubsystem, m_coralSubsystem, m_elevatorSubsystem,
+                                m_armSubsystem, m_algaeSubsystem);
 
-                // autoChooser.addOption("ScoreL1", Autos.ScoreL1Auto(m_driveSubsystem,
-                //                 m_coralSubsystem, m_elevatorSubsystem));
-
-                /*
-                 * NamedCommands.registerCommand("L2 Elevator", new
-                 * ElevatorPresetCommand(m_elevatorSubsystem,
-                 * ElevatorPositionConstants.kLevel2));
-                 * NamedCommands.registerCommand("L2 Arm", new ArmPresetCommand(m_armSubsystem,
-                 * ArmConstants.kLowerLevelsCoralScore));
-                 * NamedCommands.registerCommand("Default Elevator", new RunCommand(() ->
-                 * m_elevatorSubsystem.holdCurrentPosition(), m_elevatorSubsystem));
-                 * NamedCommands.registerCommand("Default Arm", new RunCommand(() ->
-                 * m_armSubsystem.holdCurrentPosition(), m_armSubsystem));
-                 */
-
-                // autoChooser = AutoBuilder.buildAutoChooser();
-                autoChooser.addOption("DriveForwardNotPathPlanner", new DriveForwardAuto(m_driveSubsystem, 1, 0.5));
                 SmartDashboard.putData(autoChooser);
 
                 // Configure the trigger bindings
                 configureBindings();
 
                 // Configure default commands
-                // ---------------- APPLY SLEW RATE LIMITER TO CONTROLLER INPUTS
-                // --------------------
+                // ---------------- MULTIPLY SPEED COEFFICIENT TO INPUT VALUES BASED ON WITH
+                // ELEVATOR HEIGHT
+                // -------------------- SQUARE DRIVER INPUT
                 m_driveSubsystem.setDefaultCommand(
                                 // The left stick controls translation of the robot.
                                 // Turning is controlled by the X axis of the right stick.
                                 new RunCommand(
                                                 () -> m_driveSubsystem.drive(
-                                                                -MathUtil.applyDeadband(m_driverController.getLeftY(),
-                                                                                OIConstants.kDriveDeadband),
+                                                                -(MathUtil.applyDeadband(m_driverController.getLeftY(),
+                                                                                OIConstants.kDriveDeadband))
+                                                                                * Math.abs((MathUtil.applyDeadband(
+                                                                                                m_driverController
+                                                                                                                .getLeftY(),
+                                                                                                OIConstants.kDriveDeadband))),
                                                                 -MathUtil.applyDeadband(m_driverController.getLeftX(),
-                                                                                OIConstants.kDriveDeadband),
+                                                                                OIConstants.kDriveDeadband)
+                                                                                * Math.abs((MathUtil.applyDeadband(
+                                                                                                m_driverController
+                                                                                                                .getLeftX(),
+                                                                                                OIConstants.kDriveDeadband))),
                                                                 -MathUtil.applyDeadband(m_driverController.getRightX(),
-                                                                                OIConstants.kDriveDeadband),
+                                                                                OIConstants.kDriveDeadband)
+                                                                                * Math.abs((MathUtil.applyDeadband(
+                                                                                                m_driverController
+                                                                                                                .getRightX(),
+                                                                                                OIConstants.kRotationDeadband))),
                                                                 false),
                                                 m_driveSubsystem));
-
-                /*
-                 * m_switchSubsystem.setDefaultCommand(
-                 * new RunCommand(() -> m_switchSubsystem.controllerRumble(m_driverController,
-                 * limitSwitch),
-                 * m_switchSubsystem));
-                 * 
-                 * m_ledSubsystem.setDefaultCommand(
-                 * new RunCommand(() -> m_ledSubsystem.limitSwitchLed(limitSwitch),
-                 * m_ledSubsystem));
-                 */
 
                 m_elevatorSubsystem.setDefaultCommand(
                                 new RunCommand(
@@ -151,19 +130,17 @@ public class RobotContainer {
                                                 m_elevatorSubsystem));
 
                 // Manual Move of arm
+                // m_armSubsystem.setDefaultCommand(
+                // new RunCommand(
+                // () -> m_armSubsystem.moveArm((m_driverController.getRightTriggerAxis()
+                // - m_driverController.getLeftTriggerAxis())
+                // * ArmConstants.kArmSpeed),
+                // m_armSubsystem));
+
                 m_armSubsystem.setDefaultCommand(
                                 new RunCommand(
-                                                () -> m_armSubsystem.moveArm((m_driverController.getRightTriggerAxis()
-                                                                - m_driverController.getLeftTriggerAxis())
-                                                                * ArmConstants.kArmSpeed),
+                                                () -> m_armSubsystem.manualHoldCurrentPosition(),
                                                 m_armSubsystem));
-
-                
-                // m_armSubsystem.setDefaultCommand(
-                //         new RunCommand(
-                //                 () -> m_armSubsystem.holdCurrentPosition(),
-                //                 m_armSubsystem));
-                
 
                 /*
                  * m_ScorePositionSubsystem.setDefaultCommand(new RunCommand(
@@ -201,7 +178,8 @@ public class RobotContainer {
 
                 // move coral out
                 new JoystickButton(m_driverController, XboxController.Button.kB.value)
-                                .whileTrue(new OutputCoral(m_coralSubsystem, CoralConstants.kCoralSpeed));
+                                .whileTrue(new OutputCoral(m_coralSubsystem, CoralConstants.kCoralSpeed))
+                                .onFalse(new ArmPresetCommand(m_armSubsystem, ArmConstants.kRotateTo));
 
                 // move coral in
                 new JoystickButton(m_driverController, XboxController.Button.kA.value)
@@ -213,48 +191,66 @@ public class RobotContainer {
 
                 // move algae in
                 new JoystickButton(m_driverController, XboxController.Button.kX.value)
-                                .whileTrue(new MoveAlgae(m_algaeSubsystem, AlgaeConstants.kRollerSpeed));
+                                .toggleOnTrue(new MoveAlgae(m_algaeSubsystem, AlgaeConstants.kRollerSpeed));
 
                 // ---------------------- Multicomponent Movement ---------------------
                 // go to score the coral (moves elevator and arm to position)
-                // new Trigger(() -> { return m_driverController.getRightTriggerAxis() > 0.05;
+                // new Trigger(() -> {
+                // return m_driverController.getRightTriggerAxis() > 0.05;
                 // })
                 // .onTrue(new GoToStateCommand(m_elevatorSubsystem, m_armSubsystem,
                 // m_ScorePositionSubsystem.getLevelState()));
+                new Trigger(() -> {
+                        return m_driverController.getRightTriggerAxis() > 0.05;
+                })
+                                .onTrue(new ScoreCoralCommand(m_elevatorSubsystem, m_armSubsystem,
+                                                m_ScorePositionSubsystem));
 
-                // // go to intake coral (moves elevator and arm to position)
-                // new JoystickButton(m_driverController,
-                // XboxController.Button.kRightBumper.value)
-                // .onTrue(new GoToStateCommand(m_elevatorSubsystem, m_armSubsystem,
-                // StateEnum.INTAKE_CORAL));
+                // go to intake coral (moves elevator and arm to position)
+                new JoystickButton(m_driverController,
+                                XboxController.Button.kRightBumper.value)
+                                .onTrue(new GoToStateCommand(m_elevatorSubsystem, m_armSubsystem,
+                                                StateEnum.INTAKE_CORAL));
 
                 // go to score algae high (moves elevator and arm to position)
-                // new Trigger(() -> { return m_driverController.getLeftTriggerAxis() > 0.05; })
-                // .onTrue(new GoToStateCommand(m_elevatorSubsystem, m_armSubsystem,
-                // StateEnum.SCORE_ALGAE_BARGE));
+                new Trigger(() -> {
+                        return m_driverController.getLeftTriggerAxis() > 0.05;
+                })
+                                .onTrue(new GoToStateCommand(m_elevatorSubsystem, m_armSubsystem,
+                                                StateEnum.SCORE_ALGAE_BARGE));
 
                 // go to intake algae (moves elevator and arm to position)
-                // new JoystickButton(m_driverController,
-                // XboxController.Button.kLeftBumper.value)
-                // .onTrue(new ToggleAlgaeIntakeCommand(m_elevatorSubsystem, m_armSubsystem))
-                // .onTrue(new ArmPresetCommand(m_armSubsystem,
-                // ArmConstants.kIntakeAlgaePosition));
+                new JoystickButton(m_driverController,
+                                XboxController.Button.kLeftBumper.value)
+                                .onTrue(new ToggleAlgaeIntakeCommand(m_elevatorSubsystem, m_armSubsystem))
+                                .onTrue(new ArmPresetCommand(m_armSubsystem,
+                                                ArmConstants.kIntakeAlgaePosition));
 
-                // go to home position (moves elevator and arm to home position)
-                // new JoystickButton(m_driverController, XboxController.Button.kStart.value)
-                // .onTrue(new GoToStateCommand(m_elevatorSubsystem, m_armSubsystem,
-                // StateEnum.HOME));
+                // // go to home position (moves elevator and arm to home position)
+                new JoystickButton(m_driverController, XboxController.Button.kStart.value)
+                                .onTrue(new GoToStateCommand(m_elevatorSubsystem, m_armSubsystem,
+                                                StateEnum.HOME));
 
                 // ------------------------ Preset Testing ----------------------
                 // Elevator preset testing use
                 // set the elevator hold position with the position from the score position
                 // subsystem
-                new JoystickButton(m_driverController, XboxController.Button.kRightBumper.value)
-                                .onTrue(new ElevatorToPreset(m_elevatorSubsystem, m_ScorePositionSubsystem));
+                // new JoystickButton(m_driverController,
+                // XboxController.Button.kRightBumper.value)
+                // .onTrue(new ElevatorToPreset(m_elevatorSubsystem, m_ScorePositionSubsystem));
 
-                // Arm preset testing use
-                // new JoystickButton(m_driverController, XboxController.Button.kLeftBumper.value)
-                //                 .onTrue(new ArmPresetCommand(m_armSubsystem, ArmConstants.kLowerLevelsCoralScore));
+                // // Arm preset testing use
+                // new JoystickButton(m_driverController,
+                // XboxController.Button.kLeftBumper.value).onTrue(
+                // new ArmToPreset(m_armSubsystem, m_ScorePositionSubsystem));
+
+                // new Trigger(() -> {
+                // return m_driverController.getLeftTriggerAxis() > 0.05;
+                // })
+                // .onTrue(new ArmPresetCommand(m_armSubsystem,
+                // ArmConstants.kIntakeCoralPosition))
+                // .onTrue(new ElevatorPresetCommand(m_elevatorSubsystem,
+                // ElevatorPositionConstants.kIntakeCoralPosition));
 
                 // ------------------------ Operator Controller ----------------------------
                 // set hold position of elevator
@@ -267,10 +263,18 @@ public class RobotContainer {
                 new JoystickButton(m_operatorController, XboxController.Button.kY.value)
                                 .onTrue(new SetSelectedPosition(m_ScorePositionSubsystem, StateEnum.CORAL_LEVEL_4));
 
-                new JoystickButton(m_operatorController, XboxController.Button.kRightBumper.value)
+                /* new JoystickButton(m_operatorController, XboxController.Button.kRightBumper.value)
                                 .onTrue(new SetScoreSideCoral(m_ScorePositionSubsystem, DriveSideEnum.RIGHT));
                 new JoystickButton(m_operatorController, XboxController.Button.kLeftBumper.value)
-                                .onTrue(new SetScoreSideCoral(m_ScorePositionSubsystem, DriveSideEnum.LEFT));
+                                .onTrue(new SetScoreSideCoral(m_ScorePositionSubsystem, DriveSideEnum.LEFT)); */
+
+                new JoystickButton(m_operatorController, XboxController.Button.kRightBumper.value)
+                                .whileTrue(new MoveArm(m_armSubsystem, ArmConstants.kArmSpeed));
+                new JoystickButton(m_operatorController, XboxController.Button.kLeftBumper.value)
+                                .whileTrue(new MoveArm(m_armSubsystem, -ArmConstants.kArmSpeed));
+
+                new JoystickButton(m_operatorController, XboxController.Button.kBack.value)
+                                .onTrue(new InvertElevatorCommand(m_elevatorSubsystem));
 
                 // ------------------- Move Manually ------------------------
 

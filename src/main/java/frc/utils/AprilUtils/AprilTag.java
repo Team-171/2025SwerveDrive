@@ -28,7 +28,7 @@ public enum AprilTag
     BLUE_REEF_FAR_LEFT(20, new Point(193.10, 186.83), 12.13, new Angle(60 - 180, AngularUnit.DEGREES)),
     BLUE_REEF_FAR_CENTER(21, new Point(209.49, 158.50), 12.13, new Angle(0 - 180, AngularUnit.DEGREES)),
     BLUE_REEF_FAR_RIGHT(22, new Point(193.10, 130.17), 12.13, new Angle(300 - 180, AngularUnit.DEGREES)),
-    COUNT(0, null, 0, null);
+    COUNT();
 
     /**
      * The ID number of the april tag
@@ -49,6 +49,17 @@ public enum AprilTag
      * The angle facing straight towards the april tag
      */
     public final Angle angle;
+
+    /**
+     * Construct an AprilTag
+     */
+    private AprilTag()
+    {
+        ID = 0;
+        position = null;
+        height = 0;
+        angle = null;
+    }
 
     /**
      * Construct an AprilTag

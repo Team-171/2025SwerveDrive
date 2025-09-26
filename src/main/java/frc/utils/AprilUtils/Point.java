@@ -130,4 +130,8 @@ public class Point
         }
         return quotient;
     }
+
+    public String toString() {
+        return "(" + x + ", " + y + ")";
+    }
 }

@@ -13,7 +13,7 @@ import frc.robot.subsystems.DriveSubsystem;
 /**
  * Line up the robots bumper that is closest to the middle with the april tag on the blue alliance barge
  */
-public class DriveForwardAuto extends Command {
+public class DriveSidewaysAuto extends Command {
   @SuppressWarnings({"PMD.UnusedPrivateField", "PMD.SingularField"})
   private final DriveSubsystem driveSubsystem;
   // Distance to drive forward
@@ -26,12 +26,12 @@ public class DriveForwardAuto extends Command {
   private double speed;
 
   /**
-   * Creates the drive forward auto. 
+   * Creates the drive forward auto
    * Drives forward a set distance
    * @param distance double The distance to drive
    * @param slow boolean If the robot should drive slower
    */
-  public DriveForwardAuto(DriveSubsystem subsystem, double duration, double speed) {
+  public DriveSidewaysAuto(DriveSubsystem subsystem, double duration, double speed) {
     driveSubsystem = subsystem;
     this.duration = duration;
     this.speed = speed;
@@ -52,7 +52,7 @@ public class DriveForwardAuto extends Command {
   @Override
   public void execute() {
     // Drives forward and returns if it reached the destination
-    driveSubsystem.drive(speed, 0, 0, false);
+    driveSubsystem.drive(0, speed, 0, false);
   }
 
   // Called once the command ends or is interrupted.

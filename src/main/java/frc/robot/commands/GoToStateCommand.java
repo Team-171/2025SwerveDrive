@@ -4,6 +4,7 @@ package frc.robot.commands;
 import frc.helperObjects.StateEnum;
 import frc.robot.subsystems.ArmSubsystem;
 import frc.robot.subsystems.ElevatorSubsystem;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 
 /** An example command that uses an example subsystem. */
@@ -35,7 +36,8 @@ public class GoToStateCommand extends Command {
     @Override
     public void execute() {
         m_elevatorSubsystem.setHoldPosition(state.elevatorValue);
-        m_armSubsystem.setHoldPosition(state.armValue);
+        //m_armSubsystem.setHoldPosition(state.armValue);
+        SmartDashboard.putString("Go To State:", state.toString());
     }
 
     // Called once the command ends or is interrupted.

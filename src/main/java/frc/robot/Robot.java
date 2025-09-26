@@ -4,12 +4,16 @@
 
 package frc.robot;
 
+import edu.wpi.first.cameraserver.CameraServer;
+import edu.wpi.first.wpilibj.DataLogManager;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.RobotController;
 import edu.wpi.first.wpilibj.TimedRobot;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
+import frc.robot.Constants.LimelightConstants;
+import frc.utils.LimelightHelpers;
 
 /**
  * The VM is configured to automatically run this class, and to call the
@@ -36,6 +40,7 @@ public class Robot extends TimedRobot {
     // and put our
     // autonomous chooser on the dashboard.
     m_robotContainer = new RobotContainer();
+    CameraServer.startAutomaticCapture();
   }
 
   /**
@@ -58,6 +63,8 @@ public class Robot extends TimedRobot {
     // robot's periodic
     // block in order for anything in the Command-based framework to work.
     SmartDashboard.putNumber("Match Time", DriverStation.getMatchTime());
+    SmartDashboard.putBoolean("LEFT TV", LimelightHelpers.getTV(LimelightConstants.leftLimelight));
+    SmartDashboard.putBoolean("RIGHT TV", LimelightHelpers.getTV(LimelightConstants.rightLimelight));
     CommandScheduler.getInstance().run();
   }
 

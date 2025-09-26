@@ -9,39 +9,41 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 
 import frc.robot.Constants.CoralConstants;
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.motorcontrol.Spark;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-public class CoralSubsystem extends SubsystemBase{
+public class CoralSubsystem extends SubsystemBase {
 
     private final SparkMax m_rollerTop = new SparkMax(CoralConstants.kCoralMotorCanID, MotorType.kBrushless);
     private DigitalInput limitSwitch = new DigitalInput(CoralConstants.kLimitSwitchChannel);
+    Spark ledStrip = new Spark(0);
 
     public CoralSubsystem() {
 
         SparkMaxConfig topMaxConfig = new SparkMaxConfig();
-        
+
         topMaxConfig
-            .smartCurrentLimit(20)
-            .idleMode(IdleMode.kBrake)
-            .closedLoopRampRate(0.125);
+                .smartCurrentLimit(20)
+                .idleMode(IdleMode.kBrake)
+                .closedLoopRampRate(0.125);
 
         m_rollerTop.configure(topMaxConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
- 
+
     /**
      * Spins the motors to move the coral in
+     * 
      * @param speed Speed at which to spin the motors
      */
     public void intakeCoral(double speed) {
         SmartDashboard.putBoolean("coralLimitSwitch", limitSwitch.get());
         if (limitSwitch.get() == false) {
-            m_rollerTop.set(speed);    
-        } 
-        else {
+            m_rollerTop.set(speed);
+        } else {
             m_rollerTop.set(0);
         }
-       
+
     }
 
     public void outputCoral(double speed) {
@@ -51,5 +53,13 @@ public class CoralSubsystem extends SubsystemBase{
     public void stopMotion() {
         m_rollerTop.stopMotor();
     }
-    
+
+    @Override
+    public void periodic(){
+        if(limitSwitch.get()){
+            ledStrip.set(0.73);
+        }else{
+            ledStrip.set(0.61);
+        }
+    }
 }

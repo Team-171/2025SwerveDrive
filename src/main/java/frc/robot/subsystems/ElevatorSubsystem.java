@@ -37,6 +37,8 @@ public class ElevatorSubsystem extends SubsystemBase {
 
     private final PIDController pid;
 
+    private boolean elevatorInverted = false;
+
     private SparkMaxConfig leftLiftConfig = new SparkMaxConfig();
     private SparkMaxConfig rightLiftConfig = new SparkMaxConfig();
 
@@ -102,11 +104,18 @@ public class ElevatorSubsystem extends SubsystemBase {
 
             double speed = pid.calculate(currentPosition, holdPosition);
             speed = MathUtil.clamp(speed, -ElevatorConstants.kElevatorSpeed, ElevatorConstants.kElevatorSpeed);
+            if (elevatorInverted) {
+                speed = speed * -1;
+            }
 
             elevatorMove(speed, false);
         } else {
             stopElevator();
         }
+    }
+
+    public void invertElevator(){
+        elevatorInverted = !elevatorInverted;
     }
 
     public void setHoldPosition(double position) {

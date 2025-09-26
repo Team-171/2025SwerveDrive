@@ -2,6 +2,7 @@ package frc.robot.subsystems;
 
 import frc.robot.Constants.ArmConstants;
 
+import com.revrobotics.RelativeEncoder;
 import com.revrobotics.spark.SparkAbsoluteEncoder;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.SparkBase.PersistMode;
@@ -19,14 +20,15 @@ public class ArmSubsystem extends SubsystemBase {
     private final SparkMax m_arm = new SparkMax(ArmConstants.kArmMotorCanId, MotorType.kBrushless);
 
     private final SparkAbsoluteEncoder encoder;
+    private final RelativeEncoder relativeEncoder;
     private double holdPosition;
 
-    private PIDController armPidController = new PIDController(ArmConstants.kArmP, ArmConstants.kArmI,
-            ArmConstants.kArmD);
+    private PIDController armPidController = new PIDController(ArmConstants.kArmP, ArmConstants.kArmI, ArmConstants.kArmD);
 
     public ArmSubsystem() {
 
         encoder = m_arm.getAbsoluteEncoder();
+        relativeEncoder = m_arm.getEncoder();
 
         SparkMaxConfig armConfig = new SparkMaxConfig();
 
@@ -37,12 +39,18 @@ public class ArmSubsystem extends SubsystemBase {
 
         m_arm.configure(armConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
 
-        holdPosition = getAbsoluteEncoderValue();
+        // holdPosition = getAbsoluteEncoderValue();
+        holdPosition = relativeEncoder.getPosition();
     }
 
     public void moveArm(double speed) {
         m_arm.set(speed);
         // holdPosition = getAbsoluteEncoderValue();
+    }
+
+    public void manualMoveArm(double speed) {
+        m_arm.set(speed);
+        holdPosition = relativeEncoder.getPosition();
     }
 
     public void stopArm() {
@@ -58,14 +66,23 @@ public class ArmSubsystem extends SubsystemBase {
         double currentPosition = getAbsoluteEncoderValue();
         SmartDashboard.putNumber("currentPositionAfterWrapper", currentPosition);
 
-        SmartDashboard.putNumber("HoldingHoldPosition", holdPosition);
-        holdPosition = MathUtil.clamp(holdPosition, ArmConstants.kArmCounterClockwiseStop, ArmConstants.kArmClockwiseStop);
+        double target = MathUtil.clamp(holdPosition, ArmConstants.kArmCounterClockwiseStop, ArmConstants.kArmClockwiseStop);
+        SmartDashboard.putNumber("targetArmPosition", target);
+        
+        double speed = armPidController.calculate(currentPosition, holdPosition);
+        speed = MathUtil.clamp(speed, -ArmConstants.kArmSpeed, ArmConstants.kArmSpeed);
+
+        m_arm.set(-speed);
+        SmartDashboard.putNumber("PIDArmSpeed", -speed);
+    }
+
+    public void manualHoldCurrentPosition() {
+        double currentPosition = relativeEncoder.getPosition();
 
         double speed = armPidController.calculate(currentPosition, holdPosition);
         speed = MathUtil.clamp(speed, -ArmConstants.kArmSpeed, ArmConstants.kArmSpeed);
 
-        // m_arm.set(speed);
-        SmartDashboard.putNumber("PIDArmSpeed", speed);
+        m_arm.set(-speed);
     }
 
     private double getAbsoluteEncoderValue() {

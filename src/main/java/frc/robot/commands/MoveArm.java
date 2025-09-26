@@ -32,7 +32,7 @@ public class MoveArm extends Command {
   // Called every time the scheduler runs while the command is scheduled.
   @Override
   public void execute() {
-    m_subsystem.moveArm(speed);
+    m_subsystem.manualMoveArm(speed);
   }
 
   // Called once the command ends or is interrupted.

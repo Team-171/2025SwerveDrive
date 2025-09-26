@@ -1,5 +1,7 @@
 package frc.utils.AprilUtils;
 
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
+
 /**
  * Calculates the robot and target position from the april tag
  * @author Nathan Sandvig
@@ -110,12 +112,15 @@ public class AprilTagPosition
     {
         // Calculate the distance to target using the height, vertical offset, and vertical sensor value
         double distance = calculateDistance(limelightVertical, aprilTag.height);
+        SmartDashboard.putNumber("distanceAutoAim", distance);
 
         // Calculate the position of the april tag
         Point limelightPosition = calculateLimelightPosition(aprilTag, distance, limelightHorizontal, robotAngle);
+        SmartDashboard.putString("limelightPosition", limelightPosition.toString());
 
         // Calculate the offset from robot to limelight using robot angle and limelight offsets
         Point limelightOffset = calculateLimelightOffset(robotAngle);
+        SmartDashboard.putString("limelightOffset", limelightOffset.toString());
 
         // Subtract the offset from the position to calculate the robot position
         return limelightPosition.subtract(limelightOffset);
