@@ -4,15 +4,21 @@
 
 package frc.robot.subsystems;
 
+import javax.crypto.SealedObject;
+
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.config.PIDConstants;
 import com.pathplanner.lib.config.RobotConfig;
 import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.util.DriveFeedforwards;
+import com.pathplanner.lib.util.swerve.SwerveSetpoint;
+import com.pathplanner.lib.util.swerve.SwerveSetpointGenerator;
 import com.studica.frc.AHRS;
 import com.studica.frc.AHRS.NavXComType;
 
 import edu.wpi.first.hal.FRCNetComm.tInstances;
 import edu.wpi.first.hal.FRCNetComm.tResourceType;
+import edu.wpi.first.hal.simulation.RoboRioDataJNI;
 import edu.wpi.first.hal.HAL;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.VecBuilder;
@@ -25,6 +31,7 @@ import edu.wpi.first.math.kinematics.ChassisSpeeds;
 import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
 import edu.wpi.first.math.kinematics.SwerveModulePosition;
 import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.Field2d;
@@ -38,8 +45,12 @@ import frc.utils.GyroWrapper;
 import frc.utils.LimelightHelpers;
 import frc.utils.PolarUtils;
 
+
 public class DriveSubsystem extends SubsystemBase {
   // Create MAXSwerveModules
+  private final SwerveSetpointGenerator setpointGenerator;
+  private final SwerveSetpoint previousSetpoint;
+
   private final MAXSwerveModule m_frontLeft = new MAXSwerveModule(
       DriveConstants.kFrontLeftDrivingCanId,
       DriveConstants.kFrontLeftTurningCanId,
@@ -78,59 +89,73 @@ public class DriveSubsystem extends SubsystemBase {
 
   /** Creates a new DriveSubsystem. */
   public DriveSubsystem() {
-    // Usage reporting for MAXSwerve template
-    HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_MaxSwerve);
 
-    RobotConfig config = null;
 
-    // Need to change depending on current alliance
-    m_GyroWrapper.setOffset(180);
+    RobotConfig config1 = new RobotConfig(getHeading(), getTurnRate(), null, getHeading());
 
-    try {
-      config = RobotConfig.fromGUISettings();
-    } catch (Exception e) {
-      // Handle exception as needed
-      e.printStackTrace();
-    }
-
-    m_PoseEstimator = new SwerveDrivePoseEstimator(DriveConstants.kDriveKinematics,
-        m_GyroWrapper.getRotation2d(),
-        new SwerveModulePosition[] {
-            m_frontLeft.getPosition(),
-            m_frontRight.getPosition(),
-            m_rearLeft.getPosition(),
-            m_rearRight.getPosition()
-        }, new Pose2d());
-
-    AutoBuilder.configure(
-        this::getPose, // Robot pose supplier
-        this::resetOdometry, // Method to reset odometry (will be called if your auto has a starting pose)
-        this::getChassisSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
-        (speeds, feedforwards) -> driveRobotRelative(speeds), // Method that will drive the robot given ROBOT RELATIVE
-                                                              // ChassisSpeeds. Also optionally outputs individual
-                                                              // module feedforwards
-        new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic
-                                        // drive trains
-            new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
-            new PIDConstants(5.0, 0.0, 0.0) // Rotation PID constants
-        ),
-        config, // The robot configuration
-        () -> {
-          // Boolean supplier that controls when the path will be mirrored for the red
-          // alliance
-          // This will flip the path being followed to the red side of the field.
-          // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
-
-          var alliance = DriverStation.getAlliance();
-          if (alliance.isPresent()) {
-            return alliance.get() == DriverStation.Alliance.Red;
-          }
-          return false;
-        },
-        this // Reference to this subsystem to set requirements
-    );
-  }
-
+        setpointGenerator = new SwerveSetpointGenerator(config1, Units.rotationsToRadians(10));
+        ChassisSpeeds currentSpeeds = getChassisSpeeds(); // Method to get current robot-relative chassis speeds
+        SwerveModuleState[] currentStates = getSwerveModuleStates(); // Method to get the current swerve module states
+        previousSetpoint = new SwerveSetpoint(currentSpeeds, currentStates, DriveFeedforwards.zeros(config1.numModules));
+                        
+                        
+                        
+                        
+    
+        // Usage reporting for MAXSwerve template
+        HAL.report(tResourceType.kResourceType_RobotDrive, tInstances.kRobotDriveSwerve_MaxSwerve);
+    
+        RobotConfig config = null;
+    
+        // Need to change depending on current alliance
+        m_GyroWrapper.setOffset(180);
+    
+        try {
+          config = RobotConfig.fromGUISettings();
+        } catch (Exception e) {
+          // Handle exception as needed
+          e.printStackTrace();
+        }
+    
+        m_PoseEstimator = new SwerveDrivePoseEstimator(DriveConstants.kDriveKinematics,
+            m_GyroWrapper.getRotation2d(),
+            new SwerveModulePosition[] {
+                m_frontLeft.getPosition(),
+                m_frontRight.getPosition(),
+                m_rearLeft.getPosition(),
+                m_rearRight.getPosition()
+            }, new Pose2d());
+    
+        AutoBuilder.configure(
+            this::getPose, // Robot pose supplier
+            this::resetOdometry, // Method to reset odometry (will be called if your auto has a starting pose)
+            this::getChassisSpeeds, // ChassisSpeeds supplier. MUST BE ROBOT RELATIVE
+            (speeds, feedforwards) -> driveRobotRelative(speeds), // Method that will drive the robot given ROBOT RELATIVE
+                                                                  // ChassisSpeeds. Also optionally outputs individual
+                                                                  // module feedforwards
+            new PPHolonomicDriveController( // PPHolonomicController is the built in path following controller for holonomic
+                                            // drive trains
+                new PIDConstants(5.0, 0.0, 0.0), // Translation PID constants
+                new PIDConstants(5.0, 0.0, 0.0) // Rotation PID constants
+            ),
+            config, // The robot configuration
+            () -> {
+              // Boolean supplier that controls when the path will be mirrored for the red
+              // alliance
+              // This will flip the path being followed to the red side of the field.
+              // THE ORIGIN WILL REMAIN ON THE BLUE SIDE
+    
+              var alliance = DriverStation.getAlliance();
+              if (alliance.isPresent()) {
+                return alliance.get() == DriverStation.Alliance.Red;
+              }
+              return false;
+            },
+            this // Reference to this subsystem to set requirements
+        );
+      }
+    
+        
   public ChassisSpeeds getChassisSpeeds() {
     ChassisSpeeds speeds = DriveConstants.kDriveKinematics.toChassisSpeeds(m_frontLeft.getState(),
         m_frontRight.getState(), m_rearLeft.getState(), m_rearRight.getState());
@@ -383,4 +408,19 @@ public class DriveSubsystem extends SubsystemBase {
   public double getTurnRate() {
     return m_gyro.getRate() * (DriveConstants.kGyroReversed ? -1.0 : 1.0);
   }
+
+  private SwerveModuleState getCurrentModuleStates() {
+    // TODO Auto-generated method stub
+    SwerveModuleState swerveModuleState = new SwerveModuleState();
+    return swerveModuleState;
+  }
+
+  public SwerveModuleState[] getSwerveModuleStates() {
+    return new SwerveModuleState[] {
+            m_frontLeft.getState(),
+            m_frontRight.getState(),
+            m_rearLeft.getState(),
+            m_rearRight.getState()
+  };
+}
 }

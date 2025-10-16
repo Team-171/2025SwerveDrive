@@ -4,6 +4,9 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.auto.AutoBuilder;
+import com.pathplanner.lib.auto.NamedCommands;
+
 import edu.wpi.first.hal.SimLong;
 import edu.wpi.first.math.MathUtil;
 import edu.wpi.first.math.filter.SlewRateLimiter;
@@ -86,8 +89,19 @@ public class RobotContainer {
          */
         public RobotContainer() {
 
-                autoChooser = Autos.buildChooser(m_driveSubsystem, m_coralSubsystem, m_elevatorSubsystem,
-                                m_armSubsystem, m_algaeSubsystem);
+                // autoChooser = Autos.buildChooser(m_driveSubsystem, m_coralSubsystem, m_elevatorSubsystem,
+                //                 m_armSubsystem, m_algaeSubsystem);
+                // autoChooser = AutoBuilder.buildAutoChooser();
+                boolean isCompetition = true;
+                autoChooser = AutoBuilder.buildAutoChooserWithOptionsModifier(
+                        (stream) -> isCompetition
+                        ? stream.filter(auto -> auto.getName().startsWith("Drive"))
+                        : stream
+                );
+
+                NamedCommands.registerCommand("autoBalance", new Command() {});
+
+    SmartDashboard.putData("Auto Chooser", autoChooser);
 
                 SmartDashboard.putData(autoChooser);
 
